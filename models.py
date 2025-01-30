@@ -1,0 +1,330 @@
+#Dependancies
+import numpy as np
+from scipy.integrate import odeint
+import matplotlib.pyplot as plt
+
+#No interference model
+def no_int_model(
+    xy: list,
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+) -> list:
+    
+    '''This model is a continuous model that describes the evolution of a pest population x and a predator population y 
+    
+    Param:
+        xy: a list of values of [x,y] at a time t_n
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        
+    Return:
+        dx, dy: a list of the two population size of x and y at time t_{n+1}'''
+    
+    #Initialisation
+    x = xy[0]
+    y = xy[1]
+
+    #Continuous part of the model
+    dx = r*x * (1 - x/K) - (a*x/(c + x)) * y
+    dy = gamma * (a*x/(c + x)) * y - m*y
+
+    return dx, dy
+
+def solve_no_int_ode(
+    xy: list,
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+    mu: float = 1,
+    T: float = 5,
+    t_0: float = 0,
+    t_n: float = 20
+        
+):
+    '''This function gives the anwser of the semi-discrete ODE system with the no-interference model 
+    
+    Param:
+        model: the chosen model
+        xy: put the initial value here. It will be changed along the for loop
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        mu: release rate
+        T: release period
+        start: left endpoint of the domain
+        end: right endpoint of the domain
+        
+    Return:
+        x, y: values of the solution (x, y) of the ODE
+        t: the time vector that has the same shape as x and y'''
+    
+    #Store solution in lists
+    x = [] #empty list
+    y = [] #empty list
+
+    #Record initial conditions
+    x.append(xy[0])
+    y.append(xy[1])
+
+    #Solve ODE
+    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T. 0.001 was added to t_n to go until t_n
+    for i in range(1,len(intervals)):
+        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        #Span for this period
+        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        #Solve for this period
+        xy_step = odeint(no_int_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma)) 
+        x.extend(xy_step.T[0])
+        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
+        y.append(y_kT_plus)
+
+    t = np.linspace(t_0, t_n, len(y))
+    
+
+    return x, y, t
+
+#Beddington-DeAngelis model
+def bda_model(
+    xy: list,
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+    b: float = 5
+) -> list:
+    
+    '''This model is a continuous model that describes the evolution of a pest population x and a predator population y following the Beddington-DeAngelis model
+    
+    Param:
+        xy: a list of values of [x,y] at a time t_n
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        b: penalty coefficient of the predator efficiency
+        
+    Return:
+        dx, dy: a list of the two population size of x and y at time t_{n+1}'''
+    
+    #Initialisation
+    x = xy[0]
+    y = xy[1]
+
+    #Continuous part of the model
+    dx = r*x * (1 - x/K) - (a*x/(c + x + b*y)) * y
+    dy = gamma * (a*x/(c + x + b*y)) * y - m*y
+
+    return dx, dy
+
+def solve_bda_ode(
+    xy: list,
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+    b: float = 5,
+    mu: float = 1,
+    T: float = 5,
+    t_0: float = 0,
+    t_n: float = 20
+        
+):
+    '''This function gives the anwser of the semi-discrete ODE system with Bedington-DeAngelis model 
+    
+    Param:
+        model: the chosen model
+        xy: put the initial value here. It will be changed along the for loop
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        b: penalty coefficient of the predator efficiency
+        mu: release rate
+        T: release period
+        start: left endpoint of the domain
+        end: right endpoint of the domain
+        
+    Return:
+        x, y: values of the solution (x, y) of the ODE
+        t: the time vector that has the same shape as x and y'''
+    
+    #Store solution in lists
+    x = [] #empty list
+    y = [] #empty list
+
+    #Record initial conditions
+    x.append(xy[0])
+    y.append(xy[1])
+
+    #Solve ODE
+    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T
+    for i in range(1,len(intervals)):
+        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        #Span for this period
+        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        #Solve for this period
+        xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b)) 
+        x.extend(xy_step.T[0])
+        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
+        y.append(y_kT_plus)
+
+    t = np.linspace(t_0, t_n, len(y))
+
+    return x, y, t
+
+#Squabbling model
+def s_model(
+    xy: list,
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+    q: float = 0.2
+) -> list:
+    
+    '''This model is a continuous model that describes the evolution of a pest population x and a predator population y following the Beddington-DeAngelis model
+    
+    Param:
+        xy: a list of values of [x,y] at a time t_n
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        q: squabbling coefficient
+        
+    Return:
+        dx, dy: a list of the two population size of x and y at time t_{n+1}'''
+    
+    #Initialisation
+    x = xy[0]
+    y = xy[1]
+
+    #Continuous part of the model
+    dx = r*x * (1 - x/K) - (a*x/(c + x)) * y
+    dy = gamma * (a*x/(c + x)) * y - (m + q*y) *y
+
+    return dx, dy
+
+def solve_s_ode(
+    xy: list,
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5,
+    gamma: float = 0.8,
+    q: float = 0.2,
+    mu: float = 1,
+    T: float = 5,
+    t_0: float = 0,
+    t_n: float = 20
+        
+):
+    '''This function gives the anwser of the semi-discrete ODE system with Bedington-DeAngelis model 
+    
+    Param:
+        model: the chosen model
+        xy: put the initial value here. It will be changed along the for loop
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        b: penalty coefficient of the predator efficiency
+        mu: release rate
+        T: release period
+        start: left endpoint of the domain
+        end: right endpoint of the domain
+        
+    Return:
+        x, y: values of the solution (x, y) of the ODE
+        t: the time vector that has the same shape as x and y'''
+    
+    #Store solution in lists
+    x = [] #empty list
+    y = [] #empty list
+
+    #Record initial conditions
+    x.append(xy[0])
+    y.append(xy[1])
+
+    #Solve ODE
+    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T
+    for i in range(1,len(intervals)):
+        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        #Span for this period
+        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        #Solve for this period
+        xy_step = odeint(s_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, q)) 
+        x.extend(xy_step.T[0])
+        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
+        y.append(y_kT_plus)
+
+    t = np.linspace(t_0, t_n, len(y))
+
+    return x, y, t
+
+#Other functions
+def mu_b(
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.5, 
+    b: float = 5,
+    T: float = 5
+):
+    '''This function calculate the threshold mu_b above which mu should be to have a GAS
+    
+    Param: 
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        b: penalty coefficient of the predator efficiency
+    
+    Return:
+        result: value of mu_b'''
+    
+    factor_1 = (c + K)/b
+    num_factor_2 = 1 - np.exp(- (r*b/a) * m*T)
+    den_factor_2 = np.exp(- (r*b/a) * m*T) - np.exp(-m*T)
+    factor_2 = num_factor_2/den_factor_2
+    factor_3 = (1 - np.exp(-m*T))/T
+    result = factor_1 * factor_2 * factor_3
+
+    return result
