@@ -11,7 +11,7 @@ def no_int_model(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
 ) -> list:
     
@@ -45,7 +45,7 @@ def solve_no_int_ode(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
     mu: float = 1,
     T: float = 5,
@@ -107,7 +107,7 @@ def bda_model(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
     b: float = 5
 ) -> list:
@@ -143,7 +143,7 @@ def solve_bda_ode(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
     b: float = 5,
     mu: float = 1,
@@ -206,7 +206,7 @@ def s_model(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
     q: float = 0.2
 ) -> list:
@@ -242,7 +242,7 @@ def solve_s_ode(
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5,
+    m: float = 0.1,
     gamma: float = 0.8,
     q: float = 0.2,
     mu: float = 1,
@@ -298,12 +298,12 @@ def solve_s_ode(
     return x, y, t
 
 #Other functions
-def mu_b(
+def calculate_mu_b(
     r: float = 0.5,
     K: float = 10,
     a: float = 20,
     c: float = 20,
-    m: float = 0.5, 
+    m: float = 0.1, 
     b: float = 5,
     T: float = 5
 ):
