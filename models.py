@@ -328,3 +328,34 @@ def calculate_mu_b(
     result = factor_1 * factor_2 * factor_3
 
     return result
+
+def y_p_s(
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.1,
+    gamma: float = 0.8,
+    q: float = 0.2,
+    mu: float = 1,
+    T: float = 1  
+):
+    '''This function calculate the periodic solution y for the squabbling model
+    
+    Param:
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        q: squabbling coefficient 
+        mu: release rate
+        T: release period   
+        
+    Return:
+        y: The value of the periodic solution a time point(s) t'''
+    y_star = (1/2) * (mu*T - (m/q) + np.sqrt( (mu*T - (m/q))**2 + (4*mu*m*T)/(q*(1-np.exp(-m*T))) ) )
+    y = (m * y_star * np.exp(-m * (t % T))) / (m + (1 - np.exp(-m * (t % T))) *q*y_star)
+    return y
