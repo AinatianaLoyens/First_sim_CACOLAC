@@ -329,6 +329,35 @@ def calculate_mu_b(
 
     return result
 
+def calculate_mu_q(
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.1,
+    q: float = 0.2
+):
+    '''This function calculate the threshold mu_b above which mu should be to have a GAS
+    
+    Param: 
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        q: squabbling coefficient
+    
+    Return:
+        mu_q: value of mu_q'''
+    if c < 0 or K < 0:
+        print('c or K negative')
+    if c <= K:
+        S = (K+c)**2/4*K
+    elif c > K:
+        S = c
+    mu_q = (r*S/a) * (r*S*q/a + m)
+    return mu_q
+
 def y_p_s(
     t = np.linspace(0,20,201),
     r: float = 0.5,
