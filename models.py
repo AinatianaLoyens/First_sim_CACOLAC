@@ -425,6 +425,6 @@ def y_p_s(
         
     Return:
         y: The value of the periodic solution a time point(s) t'''
-    y_star = (1/2) * (mu*T - (m/q) + np.sqrt( (mu*T - (m/q))**2 + (4*mu*m*T)/(q*(1-np.exp(-m*T))) ) )
+    y_star = (1/2) * ( mu*T - (m/q) + np.sqrt( (mu*T - (m/q))**2 + (4*mu*m*T) /( q*(1-np.exp(-m*T))) ) )
     y = (m * y_star * np.exp(-m * (t % T))) / (m + (1 - np.exp(-m * (t % T))) *q*y_star)
     return y
