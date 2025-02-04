@@ -85,7 +85,8 @@ def solve_no_int_ode(
     t = [t_0]
 
     #Solve ODE
-    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T. 0.001 was added to t_n to go until t_n
+    intervals = np.arange(t_0, t_n, T) #divide the domain in intervals on length T
+    intervals = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
     y_kT_plus = xy[1] #Initial values before entring into the loop
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] 
