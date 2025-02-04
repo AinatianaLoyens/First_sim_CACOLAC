@@ -81,20 +81,26 @@ def solve_no_int_ode(
     x.append(xy[0])
     y.append(xy[1])
 
+    #Time points
+    t = [t_0]
+
     #Solve ODE
     intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T. 0.001 was added to t_n to go until t_n
+    y_kT_plus = xy[1] #Initial values before entring into the loop
     for i in range(1,len(intervals)):
-        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] 
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
         #Solve for this period
         xy_step = odeint(no_int_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma)) 
         x.extend(xy_step.T[0])
-        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y.extend(xy_step.T[1]) #Continuous part of y
         y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
-        y.append(y_kT_plus)
+        #y.append(y_kT_plus)
 
-    t = np.linspace(t_0, t_n, len(y))
+        t.extend(tspan)
+
+    #t = np.linspace(t_0, t_n, len(y))
     
 
     return x, y, t
