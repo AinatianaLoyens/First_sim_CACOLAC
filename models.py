@@ -101,7 +101,6 @@ def solve_no_int_ode(
 
         t.extend(tspan)
 
-    #t = np.linspace(t_0, t_n, len(y))
     
 
     return x, y, t
@@ -188,20 +187,25 @@ def solve_bda_ode(
     x.append(xy[0])
     y.append(xy[1])
 
+    #Time points
+    t = [t_0]
+
     #Solve ODE
-    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T
+    intervals = np.arange(t_0, t_n, T) #divide the domain in intervals on length T
+    intervals = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
+    y_kT_plus = xy[1] #Initial values before entring into the loop
     for i in range(1,len(intervals)):
-        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
         #Solve for this period
         xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b)) 
         x.extend(xy_step.T[0])
-        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y.extend(xy_step.T[1]) #Continuous part of y
         y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
-        y.append(y_kT_plus)
+        t.extend(tspan)
 
-    t = np.linspace(t_0, t_n, len(y))
+    
 
     return x, y, t
 
@@ -287,20 +291,24 @@ def solve_s_ode(
     x.append(xy[0])
     y.append(xy[1])
 
+    #Time points
+    t = [t_0]
+
     #Solve ODE
-    intervals = np.arange(t_0, t_n + 0.001, T) #divide the domain in intervals on length T
+    intervals = np.arange(t_0, t_n, T) #divide the domain in intervals on length T
+    interv = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
+    y_kT_plus = xy[1] #Initial values before entring into the loop
     for i in range(1,len(intervals)):
-        xy_kT_plus = [x[-1],y[-1]] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
+        xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
         #Solve for this period
         xy_step = odeint(s_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, q)) 
         x.extend(xy_step.T[0])
-        y.extend(xy_step.T[1][:-1]) #Continuous part of y
+        y.extend(xy_step.T[1]) #Continuous part of y
         y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
-        y.append(y_kT_plus)
-
-    t = np.linspace(t_0, t_n, len(y))
+        
+        t.extend(tspan)
 
     return x, y, t
 
