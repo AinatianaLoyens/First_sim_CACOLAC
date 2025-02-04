@@ -313,6 +313,33 @@ def solve_s_ode(
     return x, y, t
 
 #Other functions
+def calculate_mu_a(
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.1
+):
+    '''This function calculate the threshold mu_a above which mu should be to have a GAS in the no-interference model
+    
+    Param: 
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        
+    Return:
+        mu_a: value of mu_a'''
+    
+    if c <= K:
+        S = ((K+c)**2) / (4*K)
+    elif c > K:
+        S = c
+    
+    mu_a = r*m*S/a
+
+    return mu_a
 def calculate_mu_b(
     r: float = 0.5,
     K: float = 10,
@@ -322,7 +349,7 @@ def calculate_mu_b(
     b: float = 5,
     T: float = 5
 ):
-    '''This function calculate the threshold mu_b above which mu should be to have a GAS
+    '''This function calculate the threshold mu_b above which mu should be to have a GAS in the BDA model
     
     Param: 
         r: growth rate
@@ -336,10 +363,10 @@ def calculate_mu_b(
         result: value of mu_b'''
     
     factor_1 = (c + K)/b
-    num_factor_2 = 1 - np.exp(- (r*b/a) * m*T)
+    num_factor_2 = 1 - np.exp( - (r*b/a) * m*T)
     den_factor_2 = np.exp(- (r*b/a) * m*T) - np.exp(-m*T)
     factor_2 = num_factor_2/den_factor_2
-    factor_3 = (1 - np.exp(-m*T))/T
+    factor_3 = (1 - np.exp(-m*T)) / (T)
     result = factor_1 * factor_2 * factor_3
 
     return result
@@ -352,7 +379,7 @@ def calculate_mu_q(
     m: float = 0.1,
     q: float = 0.2
 ):
-    '''This function calculate the threshold mu_b above which mu should be to have a GAS
+    '''This function calculate the threshold mu_b above which mu should be to have a GAS in the squabbling model
     
     Param: 
         r: growth rate
@@ -364,13 +391,11 @@ def calculate_mu_q(
     
     Return:
         mu_q: value of mu_q'''
-    if c < 0 or K < 0:
-        print('c or K negative')
     if c <= K:
-        S = (K+c)**2/4*K
+        S = ((K+c)**2) / (4*K)
     elif c > K:
         S = c
-    mu_q = (r*S/a) * (r*S*q/a + m)
+    mu_q = (r*S/a) * ( (r*S*q/a) + m )
     return mu_q
 
 def y_p_s(
