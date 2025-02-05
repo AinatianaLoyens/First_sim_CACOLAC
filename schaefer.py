@@ -64,7 +64,7 @@ def solve_schaefer_model(
         tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
         #Solve for this period
         x_step = odeint(logistic_model, x_kT_plus, tspan, args=(r, K))
-        x_sol.extend(list(x_step))
+        x_sol.extend(x_step.T)
         x_kT_plus = np.exp(-E*T)*x_step[-1] #Equation of the discrete part
 
         t.extend(tspan)
