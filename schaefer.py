@@ -69,4 +69,4 @@ def solve_schaefer_model(
 
         t.extend(tspan)
 
-    return t, x
+    return t, x_sol
