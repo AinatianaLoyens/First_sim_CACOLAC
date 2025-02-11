@@ -3,7 +3,7 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
-print('hello world')
+print('change in tspan')
 
 #No interference model
 def no_int_model(
@@ -199,7 +199,8 @@ def solve_bda_ode(
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
+        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.append(tspan, intervals[i])
         #Solve for this period
         xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b), rtol = 1e-12) 
         x.extend(xy_step.T[0])
