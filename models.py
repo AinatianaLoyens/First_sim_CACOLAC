@@ -3,9 +3,10 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
-print('xxx')
+###print('xxx')
 
-#No interference model
+#Models
+##No interference model
 def no_int_model(
     xy: list,
     t = np.linspace(0,20,201),
@@ -93,7 +94,8 @@ def solve_no_int_ode(
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] 
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
+        tspan = np.linspace(intervals[i-1], intervals[i], 101)
+        tspan = np.append(tspan, intervals[i]) 
         #Solve for this period
         xy_step = odeint(no_int_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma)) 
         x.extend(xy_step.T[0])
@@ -107,7 +109,7 @@ def solve_no_int_ode(
 
     return x, y, t
 
-#Beddington-DeAngelis model
+##Beddington-DeAngelis model
 def bda_model(
     xy: list,
     t = np.linspace(0,20,201),
@@ -199,7 +201,7 @@ def solve_bda_ode(
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.linspace(intervals[i-1], intervals[i], 101) 
         tspan = np.append(tspan, intervals[i])
         print(tspan)
         #Solve for this period
@@ -213,7 +215,7 @@ def solve_bda_ode(
 
     return x, y, t
 
-#Squabbling model
+##Squabbling model
 def s_model(
     xy: list,
     t = np.linspace(0,20,201),
@@ -305,7 +307,7 @@ def solve_s_ode(
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.linspace(intervals[i-1], intervals[i], 101) 
         tspan = np.append(tspan, intervals[i])
         print(tspan)
         #Solve for this period
@@ -318,7 +320,7 @@ def solve_s_ode(
 
     return x, y, t
 
-#Other functions
+#Functions for the stability conditions
 def calculate_mu_a(
     r: float = 0.5,
     K: float = 10,
@@ -404,6 +406,7 @@ def calculate_mu_q(
     mu_q = (r*S/a) * ( (r*S*q/a) + m )
     return mu_q
 
+#Periodic solutions
 def y_p_s(
     t = np.linspace(0,20,201),
     r: float = 0.5,
