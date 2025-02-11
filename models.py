@@ -203,7 +203,7 @@ def solve_bda_ode(
         #Span for this period
         tspan = np.linspace(intervals[i-1], intervals[i], 101) 
         tspan = np.append(tspan, intervals[i])
-        print(tspan)
+        #print(tspan)
         #Solve for this period
         xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b), rtol = 1e-12) 
         x.extend(xy_step.T[0])
@@ -309,7 +309,7 @@ def solve_s_ode(
         #Span for this period
         tspan = np.linspace(intervals[i-1], intervals[i], 101) 
         tspan = np.append(tspan, intervals[i])
-        print(tspan)
+        #print(tspan)
         #Solve for this period
         xy_step = odeint(s_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, q)) 
         x.extend(xy_step.T[0])
@@ -407,6 +407,71 @@ def calculate_mu_q(
     return mu_q
 
 #Periodic solutions
+def y_p_no_int(
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.1,
+    gamma: float = 0.8,
+    mu: float = 1,
+    T: float = 5,
+
+):
+    '''This function calculate the periodic solution y for no-interference model
+    
+    Param:
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        mu: release rate
+        T: release period 
+        
+    Return:
+        y: The value of the periodic solution a time point(s) t'''
+    y_p_0 = mu*T/(1 - np.exp(-m*T)) #initial value
+    y = y_p_0 * np.exp(-m*( np.array(t) % T))
+
+    return y
+
+def y_p_bda(
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    b: float = 5,
+    m: float = 0.1,
+    gamma: float = 0.8,
+    mu: float = 1,
+    T: float = 5,
+):
+    '''This function calculate the periodic solution y for BDA model
+    
+    Param:
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        b: penalty coefficient of the predator efficiency
+        m: death rate
+        gamma: conversion factor
+        mu: release rate
+        T: release period 
+        
+    Return:
+        y: The value of the periodic solution a time point(s) t'''
+    y_p_0 = mu*T/(1 - np.exp(-m*T)) #initial value
+    y = y_p_0 * np.exp(-m*( np.array(t) % T))
+    #Note that it's the exact same function as y_p_no_int
+
+    return y
+
+
 def y_p_s(
     t = np.linspace(0,20,201),
     r: float = 0.5,
@@ -437,3 +502,50 @@ def y_p_s(
     y_star = (1/2) * ( mu*T - (m/q) + np.sqrt( (mu*T - (m/q))**2 + (4*mu*m*T) /( q*(1-np.exp(-m*T))) ) )
     y = (m * y_star * np.exp(-m * (t % T))) / (m + (1 - np.exp(-m * (t % T))) *q*y_star)
     return y
+
+def y_p_q(
+    t = np.linspace(0,20,201),
+    r: float = 0.5,
+    K: float = 10,
+    a: float = 20,
+    c: float = 20,
+    m: float = 0.1,
+    gamma: float = 0.8,
+    q: float = 0.2,
+    mu: float = 1,
+    T: float = 1  
+):
+    '''This function calculate the periodic solution y for the squabbling model
+    
+    Param:
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        c: half-saturation constant
+        m: death rate
+        gamma: conversion factor
+        q: squabbling coefficient 
+        mu: release rate
+        T: release period   
+        
+    Return:
+        y: The value of the periodic solution a time point(s) t'''
+    #Intermediate variables for y_star
+    A = mu*T - m/q
+    num_B = 4*mu*m*T
+    den_B = q * (1 - np.exp(-m*T))
+    B = num_B/den_B
+
+    #y_star
+    y_star = (1/2) * (A + np.sqrt(A**2 + B))
+
+    #Intermediate variable for y
+    E = np.exp(-m * (t % T))
+    num_y = m * y_star * E
+    den_y = m + (1 - E) *q*y_star
+
+    #y
+    y = num_y/den_y
+
+    return y
+
