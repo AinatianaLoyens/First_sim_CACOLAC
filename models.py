@@ -304,7 +304,8 @@ def solve_s_ode(
     for i in range(1,len(intervals)):
         xy_kT_plus = [x[-1],y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)] that is the last element of [x,y]
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
+        tspan = np.arange(intervals[i-1], intervals[i], 0.01) 
+        tspan = np.append(tspan, intervals[i])
         #Solve for this period
         xy_step = odeint(s_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, q)) 
         x.extend(xy_step.T[0])
