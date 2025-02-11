@@ -3,6 +3,8 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 
+print('hello world')
+
 #No interference model
 def no_int_model(
     xy: list,
