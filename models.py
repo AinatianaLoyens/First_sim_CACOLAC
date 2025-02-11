@@ -199,7 +199,7 @@ def solve_bda_ode(
         #Span for this period
         tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
         #Solve for this period
-        xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b)) 
+        xy_step = odeint(bda_model, xy_kT_plus, tspan, args=(r, K, a, c, m, gamma, b), rtol = 1e-12) 
         x.extend(xy_step.T[0])
         y.extend(xy_step.T[1]) #Continuous part of y
         y_kT_plus = xy_step.T[1][-1] + mu*T #Equation of the discrete part
