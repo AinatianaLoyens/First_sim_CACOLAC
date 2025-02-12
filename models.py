@@ -1,7 +1,6 @@
 #Dependancies
 import numpy as np
 from scipy.integrate import odeint
-import matplotlib.pyplot as plt
 
 ###print('xxx')
 
@@ -549,3 +548,7 @@ def y_p_q(
 
     return y
 
+def test_function() -> str:
+    '''This function is to test if the changes in the module is immediately available'''
+
+    return 'Changes are available'
