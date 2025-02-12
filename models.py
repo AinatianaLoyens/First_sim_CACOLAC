@@ -551,4 +551,4 @@ def y_p_q(
 def test_function() -> str:
     '''This function is to test if the changes in the module is immediately available'''
 
-    return 'Changes are available'
+    return 'Test new version'
