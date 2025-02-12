@@ -45,6 +45,8 @@ def solve_schaefer_model(
         a: search rate
         E: taking effort
         T: period
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
         
     Return:
         t: time points
@@ -61,7 +63,8 @@ def solve_schaefer_model(
     x_kT_plus = x #Initial values before entring into the loop
     for i in range(1,len(intervals)):
         #Span for this period
-        tspan = np.arange(intervals[i-1], intervals[i] + 0.01, 0.01) 
+        tspan = np.linspace(intervals[i-1], intervals[i], 101) 
+        tspan = np.append(tspan, intervals[i])
         #Solve for this period
         x_step = odeint(logistic_model, x_kT_plus, tspan, args=(r, K))
         x_sol.extend(x_step.T[0])
