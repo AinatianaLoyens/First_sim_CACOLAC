@@ -58,7 +58,6 @@ def solve_no_int_ode(
     '''This function gives the anwser of the semi-discrete ODE system with the no-interference model 
     
     Param:
-        model: the chosen model
         xy: put the initial value here. It will be changed along the for loop
         r: growth rate
         K: carrying capacity
@@ -68,8 +67,8 @@ def solve_no_int_ode(
         gamma: conversion factor
         mu: release rate
         T: release period
-        start: left endpoint of the domain
-        end: right endpoint of the domain
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
         
     Return:
         x, y: values of the solution (x, y) of the ODE
