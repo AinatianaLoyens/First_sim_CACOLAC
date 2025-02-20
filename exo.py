@@ -3,10 +3,19 @@
 #Dependancies
 import numpy as np
 from scipy.integrate import odeint
+from typing import Callable
 
 print('Logistic growth')
 
-#Logistic growth model
+#Pre-implemented functions that can be used in the models
+def identity(z: float):
+    '''This function returns the argument itself'''
+    return z
+
+def multiply(z1: float, z2: float):
+    '''This function multiplies z1 and z2'''
+    return z1 * z2
+
 def logistic_model(
     x,
     t,
@@ -28,6 +37,8 @@ def logistic_model(
     dx = r*x * (1 - x/K)
 
     return dx
+
+
 
 #Basic Lotka-Volterra model
 def basic_lv_model(
@@ -136,8 +147,8 @@ def logistic_lv_model(
     
     Param:
         xy: a list of values of [x,y] at a time t_n
-        r: growth rate
         t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so put whatever you want)
+        r: growth rate
         K: carrying capacity
         a: search rate
         gamma: conversion factor
@@ -218,3 +229,115 @@ def solve_logistic_lv_model(
         t.extend(tspan)
 
     return x, y, t
+
+#General model
+
+def predator_prey_model(
+    xy,
+    t,
+    gamma: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float],
+):
+    '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model
+    
+    Param:
+        xy: a list of values of [x,y] at a time t_n
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so put whatever you want)
+        gamma: conversion factor
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+
+    Example of run:
+        predator_prey_model(
+        xy=xy,
+        t=t,
+        gamma=gamma,
+        func_g=identity,
+        kwargs_g={'z': r},
+        func_f=multiply,
+        kwargs_f={'z1': a, 'z2': x} #There might be a problem with this x
+        func_m=identity,
+        kwargs_m={'z': m}
+        )
+
+    Return: 
+        dx, dy: a list of the two population size of x and y at time t_{n+1}'''
+    
+    #Initialisation
+    x = xy[0]
+    y = xy[1]
+
+    #Continuous part of the model
+    dx = func_g(**kwargs_g)*x - func_f(**kwargs_f)*y
+    dy = gamma * func_f(**kwargs_f) * y - func_m(**kwargs_m)*y
+    
+    return dx, dy
+
+def solve_predator_prey_model(
+    xy,
+    t,
+    gamma: float,
+    E: float,
+    T: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float],
+    func_h: Callable[..., float],
+    kwargs_h: dict[str, float], 
+    t_0: float,
+    t_n: float
+):
+    '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model
+    
+    Param:
+        xy: a list of values of [x,y] at a time t_n
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so put whatever you want)
+        gamma: conversion factor
+        E: taking effort
+        T: release period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        func_h: harvesting function
+        kwargs_h: a dictionnary of the arguments of the other arguments of func_h that are not x(nT). x(nT) is the first argument of func_h
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+
+    Example of run:
+        solve_predator_prey_model(
+        xy=xy,
+        t=t,
+        gamma=gamma,
+        E=E
+        T=T
+        func_g=identity,
+        kwargs_g={'z': r},
+        func_f=multiply,
+        kwargs_f={'z1': a, 'z2': x} #There might be a problem with this x
+        func_m=identity,
+        kwargs_m={'z': m},
+        func_h=identity,
+        kwargs_h={} #Empty dictionnary because identity only takes one argument that will already be x(nT)
+        )
+
+    Return: 
+        x, y: values of the solution (x, y) of the ODE
+        t: the time vector that has the same shape as x and y'''
+    
+        #x_kT_plus = xy_step.T[0][-1] - E*func_h(xy_step.T[0][-1], kwargs_h) #Applying func-h to x(nT)
+    ...
