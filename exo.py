@@ -4,6 +4,8 @@
 import numpy as np
 from scipy.integrate import odeint
 
+print('With dicrete part')
+
 #Logistic growth model
 def logistic_model(
     x,
@@ -113,7 +115,7 @@ def solve_basic_lv_model(
         #Solve for this period
         xy_step = odeint(basic_lv_model, xy_kT_plus, tspan, args=(r, a, gamma, m)) 
         x.extend(xy_step.T[0]) #Continuous part of x
-        x_kT_plus = xy_step.T[0][-1] - E*xy[0] #Equation of the discrete part
+        x_kT_plus = xy_step.T[0][-1] - E*xy_step.T[0][-1]#Equation of the discrete part
         y.extend(xy_step.T[1]) 
 
         t.extend(tspan)
