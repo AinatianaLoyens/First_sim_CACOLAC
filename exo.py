@@ -23,29 +23,6 @@ def multiply_x(x, y, z:float):
     z: the factor by which x is multiplied'''
     return z * x
 
-def logistic_model(
-    x,
-    y,
-    r: float,
-    K: float        
-):
-    '''This model is a continuous model that describes a logistic growth 
-    
-    Param:
-        x: the initial value of x
-        y: predator population that is not used by the function but will be needed for the general model
-        r: growth rate
-        K: carrying capacity
-        a: search rate
-        
-    Return:
-        dx: a list of the population size of x'''
-    
-    #Continuous part of the model
-    dx = r * (1 - x/K)
-
-    return dx
-
 def return_one(x,y):
     '''This function returns 1
     x: pest population that is not used by the function but will be needed for the general model
@@ -73,6 +50,82 @@ def return_y(x,y):
     y: predator population 
     '''
     return y
+
+def logistic_model(
+    x,
+    y,
+    r: float,
+    K: float        
+):
+    '''This model is a continuous model that describes a logistic growth 
+    
+    Param:
+        x: the initial value of x
+        y: predator population that is not used by the function but will be needed for the general model
+        r: growth rate
+        K: carrying capacity
+        a: search rate
+        
+    Return:
+        dx: a list of the population size of x'''
+    
+    #Continuous part of the model
+    dx = r * (1 - x/K)
+
+    return dx
+
+def no_int_f(
+      x,
+      y,
+      a: float,
+      c: float  
+):
+    '''This function is the functional response of the no-interaction model
+    
+    Param:
+        x: pest population 
+        y: predator population
+        a: search rate
+        c: half-saturation constant'''
+    
+    return a*x/(c + x)
+
+def bda_f(
+        x,
+        y,
+        a: float,
+        c: float,
+        b: float
+):
+    '''This function is the functional response of Beddington-DeAngelis model
+    
+    Param:
+        x: pest population 
+        y: predator population
+        a: search rate
+        c: half-saturation constant
+        b: penalty coefficient of the predator efficiency'''
+    
+    return a*x/(c + x + b*y)
+
+def squabbling_m(
+        x,
+        y,
+        m: float,
+        q: float
+        
+):
+    '''This function is the mortality functin of squabbling model
+    
+    Param:
+        x: pest population 
+        y: predator population
+        m: death rate
+        q: squabbling coefficient'''
+    
+    return m + q*y
+    
+
 
 #Basic Lotka-Volterra model
 def basic_lv_model(
