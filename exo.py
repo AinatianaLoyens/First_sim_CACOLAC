@@ -399,7 +399,7 @@ def solve_predator_prey_model(
         xy_step = odeint(predator_prey_model, xy_kT_plus, tspan, 
                          args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m)) 
         x.extend(xy_step.T[0]) #Continuous part of x
-        x_kT_plus = xy_step.T[0][-1] - E*func_h(xy_step.T[0][-1], xy_step.T[0][-1], **kwargs_h) #Applying func_h to x(nT)
+        x_kT_plus = xy_step.T[0][-1] - E*func_h(xy_step.T[0][-1], xy_step.T[1][-1], **kwargs_h) #Applying func_h to x(nT)
         y.extend(xy_step.T[1]) 
 
         t.extend(tspan)
