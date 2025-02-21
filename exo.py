@@ -42,7 +42,7 @@ def logistic_model(
         dx: a list of the population size of x'''
     
     #Continuous part of the model
-    dx = r*x * (1 - x/K)
+    dx = r * (1 - x/K)
 
     return dx
 
