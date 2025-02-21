@@ -102,7 +102,7 @@ def basic_lv_model(
     y = xy[1]
 
     #Continuous part of the model
-    dx = r*x * - a*x * y
+    dx = r*x - a*x * y
     dy = gamma * a*x * y - m*y
 
     return dx, dy
@@ -197,7 +197,7 @@ def logistic_lv_model(
     y = xy[1]
 
     #Continuous part of the model
-    dx = logistic_model(x,y,r,K)*x * - a*x * y
+    dx = logistic_model(x,y,r,K)*x - a*x * y
     dy = gamma * a*x * y - m*y
 
     return dx, dy
