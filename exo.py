@@ -8,17 +8,24 @@ from typing import Callable
 print('Logistic growth')
 
 #Pre-implemented functions that can be used in the models
-def identity(z: float):
-    '''This function returns the argument itself'''
+#Those functions need to have x and y in their arguments
+def identity(x, y, z: float):
+    '''This function returns the argument z itself
+    x: pest population that is not used by the function but will be needed for the general model
+    y: predator population that is not used by the function but will be needed for the general model
+    z: the argument will be returned'''
     return z
 
-def multiply(z1: float, z2: float):
-    '''This function multiplies z1 and z2'''
-    return z1 * z2
+def multiply_x(x, y, z:float):
+    '''This function multiplies x and z
+    x: pest population 
+    y: predator population that is not used by the function but will be needed for the general model
+    z: the factor by which x is multiplied'''
+    return z * x
 
 def logistic_model(
     x,
-    t,
+    y,
     r: float,
     K: float        
 ):
@@ -26,6 +33,7 @@ def logistic_model(
     
     Param:
         x: the initial value of x
+        y: predator population that is not used by the function but will be needed for the general model
         r: growth rate
         K: carrying capacity
         a: search rate
@@ -163,7 +171,7 @@ def logistic_lv_model(
     y = xy[1]
 
     #Continuous part of the model
-    dx = logistic_model(x,t,r,K)*x * - a*x * y
+    dx = logistic_model(x,y,r,K)*x * - a*x * y
     dy = gamma * a*x * y - m*y
 
     return dx, dy
