@@ -8,7 +8,7 @@ from typing import Callable
 print('Logistic growth')
 
 #Pre-implemented functions that can be used in the models
-#Those functions need to have x and y in their arguments
+#Those functions need to have x and y as two first arguments
 def identity(x, y, z: float):
     '''This function returns the argument z itself
     x: pest population that is not used by the function but will be needed for the general model
@@ -46,7 +46,33 @@ def logistic_model(
 
     return dx
 
+def return_one(x,y):
+    '''This function returns 1
+    x: pest population that is not used by the function but will be needed for the general model
+    y: predator population that is not used by the function but will be needed for the general model
+    '''
+    return 1
 
+def return_zero(x,y):
+    '''This function returns 0
+    x: pest population that is not used by the function but will be needed for the general model
+    y: predator population that is not used by the function but will be needed for the general model
+    '''
+    return 0
+
+def return_x(x,y):
+    '''This function returns x when it's sometimes needed
+    x: pest population 
+    y: predator population that is not used by the function but will be needed for the general model
+    '''
+    return x
+
+def return_y(x,y):
+    '''This function returns y when it's sometimes needed
+    x: pest population that is not used by the function but will be needed for the general model
+    y: predator population 
+    '''
+    return y
 
 #Basic Lotka-Volterra model
 def basic_lv_model(
@@ -271,8 +297,8 @@ def predator_prey_model(
         gamma=gamma,
         func_g=identity,
         kwargs_g={'z': r},
-        func_f=multiply,
-        kwargs_f={'z1': a, 'z2': x} #There might be a problem with this x
+        func_f=multiply_x,
+        kwargs_f={'z': a} 
         func_m=identity,
         kwargs_m={'z': m}
         )
@@ -285,8 +311,8 @@ def predator_prey_model(
     y = xy[1]
 
     #Continuous part of the model
-    dx = func_g(**kwargs_g)*x - func_f(**kwargs_f)*y
-    dy = gamma * func_f(**kwargs_f) * y - func_m(**kwargs_m)*y
+    dx = func_g(x, y, **kwargs_g)*x - func_f(x, y, **kwargs_f)*y
+    dy = gamma * func_f(x, y, **kwargs_f) * y - func_m(x, y, **kwargs_m)*y
     
     return dx, dy
 
@@ -327,25 +353,55 @@ def solve_predator_prey_model(
         t_n: right endpoint of the domain
 
     Example of run:
-        solve_predator_prey_model(
-        xy=xy,
+        exo.solve_predator_prey_model(
+        xy=x0y0_a,
         t=t,
         gamma=gamma,
-        E=E
-        T=T
-        func_g=identity,
+        E=E,
+        T=T,
+        func_g=exo.identity,
         kwargs_g={'z': r},
-        func_f=multiply,
-        kwargs_f={'z1': a, 'z2': x} #There might be a problem with this x
-        func_m=identity,
+        func_f=exo.multiply_x,
+        kwargs_f={'z': a}, 
+        func_m=exo.identity,
         kwargs_m={'z': m},
-        func_h=identity,
-        kwargs_h={} #Empty dictionnary because identity only takes one argument that will already be x(nT)
+        func_h=exo.return_x,
+        kwargs_h={},
+        t_0=t_0,
+        t_n=t_n  
         )
 
     Return: 
         x, y: values of the solution (x, y) of the ODE
         t: the time vector that has the same shape as x and y'''
-    
-        #x_kT_plus = xy_step.T[0][-1] - E*func_h(xy_step.T[0][-1], kwargs_h) #Applying func-h to x(nT)
-    ...
+
+    #Store solution in lists
+    x = [] #empty list
+    y = [] #empty list
+
+    #Record initial conditions
+    x.append(xy[0])
+    y.append(xy[1])
+
+    #Time points
+    t = [t_0]
+
+    #Solve ODE
+    intervals = np.arange(t_0, t_n, T) #divide the domain in intervals on length T
+    intervals = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
+    x_kT_plus = xy[0] #Initial values before entring into the loop
+    for i in range(1,len(intervals)):
+        xy_kT_plus = [x_kT_plus,y[-1]] #the initial value in a period is [x(kT+), y(kT+)]
+        #Span for this period
+        tspan = np.linspace(intervals[i-1], intervals[i], 101)
+        tspan = np.append(tspan, intervals[i]) 
+        #Solve for this period
+        xy_step = odeint(predator_prey_model, xy_kT_plus, tspan, 
+                         args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m)) 
+        x.extend(xy_step.T[0]) #Continuous part of x
+        x_kT_plus = xy_step.T[0][-1] - E*func_h(xy_step.T[0][-1], xy_step.T[0][-1], **kwargs_h) #Applying func_h to x(nT)
+        y.extend(xy_step.T[1]) 
+
+        t.extend(tspan)
+
+    return x, y, t
