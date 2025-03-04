@@ -273,7 +273,7 @@ def solve_predator_prey_model(
         x.extend(xy_step.T[0]) #Continuous part of x
         x_kT_plus = xy_step.T[0][-1] - E_x*func_h(xy_step.T[0][-1], xy_step.T[1][-1], **kwargs_h) #Applying func_h to x(nT)
         y.extend(xy_step.T[1]) 
-        y_kT_plus = xy_step.T[0][-1] - E_y*func_h(xy_step.T[0][-1], xy_step.T[1][-1], **kwargs_h) #Applying func_h to x(nT)
+        y_kT_plus = xy_step.T[1][-1] - E_y*func_h(xy_step.T[0][-1], xy_step.T[1][-1], **kwargs_h) #Applying func_h to x(nT)
         t.extend(tspan)
 
     return x, y, t
