@@ -182,13 +182,13 @@ def identity_y(y, z: float):
     z: the argument will be returned'''
     return z
 
-def return_one(y):
+def return_one_y(y):
     '''This function returns 1
     y: predator population that is not used by the function but will be needed for the general model
     '''
     return 1
 
-def return_zero(y):
+def return_zero_y(y):
     '''This function returns 0
     y: predator population that is not used by the function but will be needed for the general model
     '''
@@ -201,7 +201,7 @@ def return_y_y(x,y):
     return y
 
 #General model with a discrete part for both x and y 
-##All functions depends on x and y
+
 def predator_prey_model(
     xy,
     t,
