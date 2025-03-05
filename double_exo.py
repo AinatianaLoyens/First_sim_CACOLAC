@@ -194,7 +194,7 @@ def return_zero_y(y):
     '''
     return 0
 
-def return_y_y(x,y):
+def return_y_y(y):
     '''This function returns y when it's sometimes needed
     y: predator population 
     '''
