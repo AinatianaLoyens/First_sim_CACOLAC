@@ -1,6 +1,7 @@
 ###This module is a module like exo.py but an exogenous mortality factor affects both x and y.
 ###It's the generalisation of exo.py. It can be used instead of exo.py with only setting func_h_y as return_zero_y.
 ###It's even possible to have no harvesting by setting both func_h_x and func_h_y as respectively return_zero_x and return_zero_y.
+###It's even possible to have a generalisation of models.py by setting func_h_x as return_zero_x, E_y as mu*T and func_h_y as return_one_y.
 
 #Dependancies
 import numpy as np
