@@ -207,7 +207,7 @@ def return_y_y(y):
 #General model with a discrete part for both x and y 
 
 def predator_prey_model(
-    xy,
+    xyI,
     t,
     gamma: float,
     func_g: Callable[..., float],
@@ -220,8 +220,8 @@ def predator_prey_model(
     '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model
     
     Param:
-        xy: a list of values of [x,y] at a time t_n
-        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so put whatever you want)
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
         gamma: conversion factor
         func_g: the growth rate function. The first argument of func_g is x
         kwargs_g: a dictionnary of the other arguments of func_g
@@ -247,17 +247,19 @@ def predator_prey_model(
         dx, dy: a list of the two population size of x and y at time t_{n+1}'''
     
     #Initialisation
-    x = xy[0]
-    y = xy[1]
+    x = xyI[0]
+    y = xyI[1]
+    I = xyI[2]
 
     #Continuous part of the model
     dx = func_g(x, **kwargs_g)*x - func_f(x, y, **kwargs_f)*y
     dy = gamma * func_f(x, y, **kwargs_f) * y - func_m(x, y, **kwargs_m)*y
+    dI = x
     
-    return dx, dy
+    return dx, dy, dI
 
 def solve_predator_prey_model(
-    xy,
+    xyI,
     t,
     gamma: float,
     E_x: float,
@@ -279,8 +281,8 @@ def solve_predator_prey_model(
     '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model.
     
     Param:
-        xy: a list of values of [x,y] at a time t_n
-        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so put whatever you want)
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
         gamma: conversion factor
         E_x: taking effort for pests
         E_y: taking effort for predators
@@ -327,10 +329,12 @@ def solve_predator_prey_model(
     #Store solution in lists
     x = [] #empty list
     y = [] #empty list
+    I = [] #empty list
 
     #Record initial conditions
-    x.append(xy[0])
-    y.append(xy[1])
+    x.append(xyI[0])
+    y.append(xyI[1])
+    I.append(xyI[2])
 
     #Time points
     t = [t_0]
@@ -339,20 +343,22 @@ def solve_predator_prey_model(
     intervals = np.arange(t_0, t_n, T) #divide the domain in intervals on length T
     intervals = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
     ##Initial values before entring into the loop
-    x_kT_plus = xy[0]
-    y_kT_plus = xy[1]
+    x_kT_plus = xyI[0]
+    y_kT_plus = xyI[1]
+    
     for i in range(1,len(intervals)):
-        xy_kT_plus = [x_kT_plus,y_kT_plus] #the initial value in a period is [x(kT+), y(kT+)]
+        xyI_kT_plus = [x_kT_plus,y_kT_plus,I[-1]] #the initial value in a period is [x(kT+), y(kT+), I(kT+)]
         ##Span for this period
         tspan = np.linspace(intervals[i-1], intervals[i], 101)
         tspan = np.append(tspan, intervals[i]) 
         ##Solve for this period
-        xy_step = odeint(predator_prey_model, xy_kT_plus, tspan, 
+        xy_step = odeint(predator_prey_model, xyI_kT_plus, tspan, 
                          args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m)) 
         x.extend(xy_step.T[0]) #Continuous part of x
         x_kT_plus = xy_step.T[0][-1] - E_x*func_h_x(xy_step.T[0][-1], **kwargs_h_x) #Applying func_h_x to x(nT)
-        y.extend(xy_step.T[1]) 
+        y.extend(xy_step.T[1]) #Continuous part of y
         y_kT_plus = xy_step.T[1][-1] - E_y*func_h_y(xy_step.T[1][-1], **kwargs_h_y) #Applying func_h_y to y(nT)
+        I.extend(xy_step.T[2]) #Integral of x
         t.extend(tspan)
 
-    return t, x, y
+    return t, x, y, I
