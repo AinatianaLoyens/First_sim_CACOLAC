@@ -355,4 +355,4 @@ def solve_predator_prey_model(
         y_kT_plus = xy_step.T[1][-1] - E_y*func_h_y(xy_step.T[1][-1], **kwargs_h_y) #Applying func_h_y to y(nT)
         t.extend(tspan)
 
-    return x, y, t
+    return t, x, y
