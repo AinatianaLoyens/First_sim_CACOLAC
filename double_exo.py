@@ -19,6 +19,15 @@ def identity(x, y, z: float):
     z: the argument will be returned'''
     return z
 
+def id_sub_E(x, y, z:float, E:float):
+    '''This function returns the argument z with E substracted from it.
+    It is used for example to have r - E_x or m - E_y
+    x: pest population that is not used by the function but will be needed for the general model
+    y: predator population that is not used by the function but will be needed for the general model
+    z: the first term
+    E: the term substracted from z'''
+    return z - E
+
 def multiply_x(x, y, z:float):
     '''This function multiplies x and z
     x: pest population 
@@ -170,7 +179,6 @@ def logistic_model_x(
         x: the initial value of x
         r: growth rate
         K: carrying capacity
-        a: search rate
         
     Return:
         dx: a list of the population size of x'''
@@ -179,6 +187,26 @@ def logistic_model_x(
     dx = r * (1 - x/K)
 
     return dx
+
+def logistic_sub_E_x(
+    x,
+    r: float,
+    K: float,
+    E_x:float
+):
+    '''This function is the logistic growth with an additional term E_x substracted from it.
+    It can even be used instead of the basic logistic model with E_x = 0
+    
+    Param:
+        x: pest population
+        r: growth rate
+        K: carrying capacity
+        E_x: substracted term (taking effort)
+        
+    '''
+
+    return r * (1 - x/K) - E_x
+
 ##Functions with y as first argument but not x
 def identity_y(y, z: float):
     '''This function returns the argument z itself
