@@ -19,14 +19,14 @@ def identity(x, y, z: float):
     z: the argument will be returned'''
     return z
 
-def id_sub_E(x, y, z:float, E:float):
+def id_plus_E(x, y, z:float, E:float):
     '''This function returns the argument z with E substracted from it.
     It is used for example to have r - E_x or m - E_y
     x: pest population that is not used by the function but will be needed for the general model
     y: predator population that is not used by the function but will be needed for the general model
     z: the first term
     E: the term substracted from z'''
-    return z - E
+    return z + E
 
 def multiply_x(x, y, z:float):
     '''This function multiplies x and z
@@ -231,6 +231,12 @@ def return_y_y(y):
     y: predator population 
     '''
     return y
+
+def multiply_y__y(y, z:float):
+    '''This function multiplies x and z
+    y: predator population 
+    z: the factor by which y is multiplied'''
+    return z * y
 
 #General model with a discrete part for both x and y 
 
