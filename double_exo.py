@@ -398,6 +398,15 @@ def solve_predator_prey_model(
 
     return t, x, y, I
 
+#Functions to help when plotting the comparison between continuous and impulsive models
+def modify_func_Ec(func_g):
+    def new_func_g(*args, E_c, **kwargs):
+        # Calculer le résultat de func_g avec les arguments donnés
+        result = func_g(*args, **kwargs)
+        # Soustraire E_c du résultat
+        return result - E_c
+    return new_func_g
+
 #Functions to plot results
 
 def plot_pop_mortality_on_x_logistic_LV(
@@ -418,7 +427,7 @@ def plot_pop_mortality_on_x_logistic_LV(
     the model with impulsive mortality on x)
     The two models have the same initial values.
     We remark that there is mortality only on x.
-    The model used is Lotka-Volterra with 
+    The model used is Lotka-Volterra with logistic growth
     
     In can be generalized later.
     The aim of the first version in to enter only a few parameters (especially initial values, E and T)
@@ -508,6 +517,130 @@ def plot_pop_mortality_on_x_logistic_LV(
     plt.figure()
     plt.plot(t, I_cont, linestyle='-', label=f'x_cont with {xyI} as initial value')
     plt.plot(t, I_imp, linestyle='--', label=f'y_imp with {xyI} as initial value')
+    plt.xlabel('time')
+    plt.ylabel('Pests population size')
+    plt.title(f'Integral of x continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+    plt.grid()
+    plt.show()
+
+def plot_cont_imp_proportional_mortality_on_x(
+    xyI,
+    t,
+    gamma: float,
+    E_c: float,
+    T: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float
+
+):
+    
+    '''This functions plots the population size of x and y for two models:
+    (the model with proportional continuous mortality on x;
+    the model with proportional impulsive mortality on x)
+    The two models have the same initial values.
+    We remark that the mortality is only on x.
+    That's why the arguments E_y, func_h_y and kwargs_h_y are not there
+    
+    Param:
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests
+        T: release period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        func_h_x: harvesting function for x
+        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain'''
+    
+    #Solve ODE
+    ##Impulsive
+    xyI_imp = solve_predator_prey_model(
+        xyI=xyI,
+        t=t,
+        gamma=gamma,
+        E_x= 1 - np.exp(-E_c*T), #Impulsive E
+        E_y=0, #No exogenous mortality on y
+        T=T,
+        func_g=func_g,
+        kwargs_g=kwargs_g,
+        func_f=func_f,
+        kwargs_f=kwargs_f, 
+        func_m=func_m,
+        kwargs_m=kwargs_m,
+        func_h_x=return_x_x, #Proportional exogenous mortality
+        kwargs_h_x={}, #Proportional exogenous mortality
+        func_h_y=return_zero_y, #No exogenous mortality on y
+        kwargs_h_y={}, #No exogenous mortality on y
+        t_0=t_0,
+        t_n=t_n  
+        )
+    x_imp = xyI_imp[1]
+    y_imp = xyI_imp[2]
+    I_imp = xyI_imp[3]
+
+    t = xyI_imp[0]
+    
+    ##Continuous
+    func_g_sub_Ec = modify_func_Ec(func_g) #Create the function g with continuous exogenous mortality
+    kwargs_g_sub_Ec = {**kwargs_g, 'E_c' : E_c} #The argument of the new function func_g_sub_Ec
+
+    xyI_cont = solve_predator_prey_model(
+            xyI=xyI,
+            t=t,
+            gamma=gamma,
+            E_x=0, #Continuous exogenous mortality, so no impulsive part
+            E_y=0, #No exogenous mortality on y
+            T=T,
+            func_g=func_g_sub_Ec,
+            kwargs_g=kwargs_g_sub_Ec,
+            func_f=func_f,
+            kwargs_f=kwargs_f, 
+            func_m=func_m,
+            kwargs_m=kwargs_m,
+            func_h_x=return_zero_x, #Continuous exogenous mortality, so no impulsive part
+            kwargs_h_x={}, #Continuous exogenous mortality, so no impulsive part
+            func_h_y=return_zero_y, #No exogenous mortality on y
+            kwargs_h_y={}, #No exogenous mortality on y
+            t_0=t_0,
+            t_n=t_n  
+            )
+    x_cont = xyI_cont[1]
+    y_cont = xyI_cont[2]
+    I_cont = xyI_cont[3]
+
+    t = xyI_cont[0]
+
+    #Plot results
+    ##Evolution of the populations
+    plt.figure()
+    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI} as initial value')
+    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI} as initial value')
+    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI} as initial value')
+    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI} as initial value')
+    plt.xlabel('time')
+    plt.ylabel('Population size')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+    plt.grid()
+    plt.show()
+
+    ##Integral of x
+    plt.figure()
+    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI} as initial value')
+    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI} as initial value')
     plt.xlabel('time')
     plt.ylabel('Pests population size')
     plt.title(f'Integral of x continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
