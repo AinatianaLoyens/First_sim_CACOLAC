@@ -400,10 +400,22 @@ def solve_predator_prey_model(
 
 #Functions to help when plotting the comparison between continuous and impulsive models
 def modify_func_Ec(func_g):
+    '''This function creates a new function.
+    The new function is the same as in parameter...
+    ...but with a supplementary parameter E_c...
+    ...which is substracted from the result of the function in parameter
+    
+    Param: 
+        func_g: a growth function which has x as first argument
+    
+    Return: 
+        new_func_g: a new function that calculates the result of func_g minus a given E_c.
+                    It has got E_c as new argument'''
     def new_func_g(*args, E_c, **kwargs):
-        # Calculer le résultat de func_g avec les arguments donnés
+        '''This function returns the result of func_g with all its agruments minus E_c'''
+        # Calculate the result of func_g
         result = func_g(*args, **kwargs)
-        # Soustraire E_c du résultat
+        # Substract E_c from the resulte
         return result - E_c
     return new_func_g
 
@@ -594,8 +606,10 @@ def plot_cont_imp_proportional_mortality_on_x(
     t = xyI_imp[0]
     
     ##Continuous
-    func_g_sub_Ec = modify_func_Ec(func_g) #Create the function g with continuous exogenous mortality
-    kwargs_g_sub_Ec = {**kwargs_g, 'E_c' : E_c} #The argument of the new function func_g_sub_Ec
+    func_g_sub_Ec = modify_func_Ec(func_g) #Create the new function g with continuous exogenous mortality
+    kwargs_g_sub_Ec = {**kwargs_g, 'E_c' : E_c} #The argument of the new function func_g_sub_Ec.
+                                                # **kwargs_g: the arguments of the previous func_g; 
+                                                #E_c: the supplementary argument of func_g_sub_Ec
 
     xyI_cont = solve_predator_prey_model(
             xyI=xyI,
