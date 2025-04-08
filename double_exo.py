@@ -10,6 +10,7 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from typing import Callable
 
+print('Double exo module')
 #Pre-implemented functions that can be used in the models (like in exo.py)
 
 ##Functions with both x and y as two first arguments
@@ -751,7 +752,7 @@ def plot_cont_imp_proportional_mortality_on_x_T(
     plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
     plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
@@ -763,7 +764,7 @@ def plot_cont_imp_proportional_mortality_on_x_T(
     plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Pests population size')
-    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
@@ -880,7 +881,7 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
     plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
@@ -892,7 +893,7 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Pests population size')
-    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
+    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
