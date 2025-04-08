@@ -640,8 +640,9 @@ def plot_pop_mortality_on_x_logistic_LV(
     plt.grid()
     plt.show()
 
-def plot_cont_imp_proportional_mortality_on_x(
-    xyI,
+def plot_cont_imp_proportional_mortality_on_x_T(
+    xyI0_imp,
+    xyI0_cont,
     t,
     gamma: float,
     E_c: float,
@@ -660,12 +661,12 @@ def plot_cont_imp_proportional_mortality_on_x(
     '''This functions plots the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
-    The two models have the same initial values.
     We remark that the mortality is only on x.
     That's why the arguments E_y, func_h_y and kwargs_h_y are not there
     
     Param:
-        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        xyI0_imp: initial values [x0,y0,I0] for the impulsive model. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        xyI0_cont: initial values [x0,y0,I0] for the continuous model. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
         t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
         gamma: conversion factor
         E_c: continuous taking effort for pests
@@ -684,7 +685,7 @@ def plot_cont_imp_proportional_mortality_on_x(
     #Solve ODE
     ##Impulsive
     xyI_imp = solve_predator_prey_model(
-        xyI=xyI,
+        xyI=xyI0_imp,
         t=t,
         gamma=gamma,
         E_x= 1 - np.exp(-E_c*T), #Impulsive E
@@ -716,7 +717,7 @@ def plot_cont_imp_proportional_mortality_on_x(
                                                 #E_c: the supplementary argument of func_g_sub_Ec
 
     xyI_cont = solve_predator_prey_model(
-            xyI=xyI,
+            xyI=xyI0_cont,
             t=t,
             gamma=gamma,
             E_x=0, #Continuous exogenous mortality, so no impulsive part
@@ -744,13 +745,13 @@ def plot_cont_imp_proportional_mortality_on_x(
     #Plot results
     ##Evolution of the populations
     plt.figure()
-    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI} as initial value')
-    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI} as initial value')
-    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI} as initial value')
-    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI} as initial value')
+    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
     plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
@@ -758,17 +759,18 @@ def plot_cont_imp_proportional_mortality_on_x(
 
     ##Integral of x
     plt.figure()
-    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI} as initial value')
-    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI} as initial value')
+    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
+    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Pests population size')
-    plt.title(f'Integral of x continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
 
 def plot_cont_imp_proportional_mortality_on_x_0(
-    xyI,
+    xyI0_imp,
+    xyI0_cont,
     t,
     gamma: float,
     E_c: float,
@@ -787,7 +789,6 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     '''This function plots the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
-    The two models have the same initial values.
     We remark that the mortality is only on x.
     That's why the arguments E_y, func_h_y and kwargs_h_y are not there
 
@@ -813,7 +814,7 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     #Solve ODE
     ##Impulsive
     xyI_imp = solve_pp_model_mortality_at_t_0( #The one thing that changes is the solver used
-        xyI=xyI,
+        xyI=xyI0_imp,
         t=t,
         gamma=gamma,
         E_x= 1 - np.exp(-E_c*T), #Impulsive E
@@ -845,7 +846,7 @@ def plot_cont_imp_proportional_mortality_on_x_0(
                                                 #E_c: the supplementary argument of func_g_sub_Ec
 
     xyI_cont = solve_pp_model_mortality_at_t_0( #The one thing that changes is the solver used
-            xyI=xyI,
+            xyI=xyI0_cont,
             t=t,
             gamma=gamma,
             E_x=0, #Continuous exogenous mortality, so no impulsive part
@@ -873,13 +874,13 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     #Plot results
     ##Evolution of the populations
     plt.figure()
-    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI} as initial value')
-    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI} as initial value')
-    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI} as initial value')
-    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI} as initial value')
+    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
     plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
@@ -887,11 +888,11 @@ def plot_cont_imp_proportional_mortality_on_x_0(
 
     ##Integral of x
     plt.figure()
-    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI} as initial value')
-    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI} as initial value')
+    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
+    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
     plt.xlabel('time')
     plt.ylabel('Pests population size')
-    plt.title(f'Integral of x continuous and impulsive exogenous mortality on pests with {xyI} as initial value')
+    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
