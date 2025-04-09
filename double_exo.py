@@ -10,7 +10,6 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from typing import Callable
 
-print('Double exo module')
 #Pre-implemented functions that can be used in the models (like in exo.py)
 
 ##Functions with both x and y as two first arguments
