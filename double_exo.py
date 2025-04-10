@@ -640,7 +640,7 @@ def plot_pop_mortality_on_x_logistic_LV(
     plt.grid()
     plt.show()
 
-def plot_cont_imp_proportional_mortality_on_x_T(
+def compare_cont_imp_proportional_mortality_on_x_T(
     xyI0_imp,
     xyI0_cont,
     t,
@@ -812,7 +812,7 @@ def plot_cont_imp_proportional_mortality_on_x_T(
             f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
         )
 
-def plot_cont_imp_proportional_mortality_on_x_0(
+def compare_cont_imp_proportional_mortality_on_x_0(
     xyI0_imp,
     xyI0_cont,
     t,
