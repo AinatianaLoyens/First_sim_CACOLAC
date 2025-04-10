@@ -654,7 +654,9 @@ def plot_cont_imp_proportional_mortality_on_x_T(
     func_m: Callable[..., float],
     kwargs_m: dict[str, float], 
     t_0: float,
-    t_n: float
+    t_n: float,
+    find_t_below_eps: bool = False,
+    eps: float = 0.01
 
 ):
     
@@ -663,6 +665,11 @@ def plot_cont_imp_proportional_mortality_on_x_T(
     the model with proportional impulsive mortality on x)
     We remark that the mortality is only on x.
     That's why the arguments E_y, func_h_y and kwargs_h_y are not there
+    It also returns the values of the criteria to compare between impulsive and continuous model.
+    The first criterium is the integral of x.
+    The second criterium is the time to reach a low value which is epsilon (only if asked).
+
+    The first event of mortality is at t=T
     
     Param:
         xyI0_imp: initial values [x0,y0,I0] for the impulsive model. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
@@ -680,7 +687,9 @@ def plot_cont_imp_proportional_mortality_on_x_T(
         func_h_x: harvesting function for x
         kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
-        t_n: right endpoint of the domain'''
+        t_n: right endpoint of the domain
+        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
+        eps: the threshold below which we want to have the population of pests'''
     
     #Solve ODE
     ##Impulsive
@@ -768,6 +777,41 @@ def plot_cont_imp_proportional_mortality_on_x_T(
     plt.grid()
     plt.show()
 
+    #Evaluate the criteria
+    ##Integral of x at final time
+    I_cont_final = I_cont[-1]
+    I_imp_final = I_imp[-1]
+
+    ##Time until reaching epsilon
+    if find_t_below_eps == True: #Only if we decide to use this criterium
+        t_cont_below_eps = None #Default value if epsilon is never reached
+        t_imp_below_eps = None #Default value if epsilon is never reached
+
+        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+        for i in range(len(x_cont)):
+            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+                t_cont_below_eps = t[i] #Store the first occurence
+                break 
+
+        for i in range(len(x_imp)):
+            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+                t_imp_below_eps = t[i] #Store the first occurence
+                break 
+
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
+            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
+            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
+        )
+    
+    else: #If we decide to only use the integral as criterium
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
+        )
+
 def plot_cont_imp_proportional_mortality_on_x_0(
     xyI0_imp,
     xyI0_cont,
@@ -782,17 +826,21 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     func_m: Callable[..., float],
     kwargs_m: dict[str, float], 
     t_0: float,
-    t_n: float
-
+    t_n: float,
+    find_t_below_eps: bool = False,
+    eps: float = 0.01
 ):
     
     '''This function plots the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
     We remark that the mortality is only on x.
-    That's why the arguments E_y, func_h_y and kwargs_h_y are not there
+    That's why the arguments E_y, func_h_y and kwargs_h_y are not there.
+    It also returns the values of the criteria to compare between impulsive and continuous model.
+    The first criterium is the integral of x.
+    The second criterium is the time to reach a low value which is epsilon (only if asked)
 
-    The first event of mortality is at 0
+    The first event of mortality is at t=0
     
     Param:
         xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
@@ -809,7 +857,9 @@ def plot_cont_imp_proportional_mortality_on_x_0(
         func_h_x: harvesting function for x
         kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
-        t_n: right endpoint of the domain'''
+        t_n: right endpoint of the domain
+        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
+        eps: the threshold below which we want to have the population of pests'''
     
     #Solve ODE
     ##Impulsive
@@ -836,8 +886,6 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     x_imp = xyI_imp[1]
     y_imp = xyI_imp[2]
     I_imp = xyI_imp[3]
-
-    t = xyI_imp[0]
     
     ##Continuous
     func_g_sub_Ec = modify_func_Ec(func_g) #Create the new function g with continuous exogenous mortality
@@ -896,3 +944,38 @@ def plot_cont_imp_proportional_mortality_on_x_0(
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
+
+    #Evaluate the criteria
+    ##Integral of x at final time
+    I_cont_final = I_cont[-1]
+    I_imp_final = I_imp[-1]
+
+    ##Time until reaching epsilon
+    if find_t_below_eps == True: #Only if we decide to use this criterium
+        t_cont_below_eps = None #Default value if epsilon is never reached
+        t_imp_below_eps = None #Default value if epsilon is never reached
+
+        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+        for i in range(len(x_cont)):
+            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+                t_cont_below_eps = t[i] #Store the first occurence
+                break 
+
+        for i in range(len(x_imp)):
+            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+                t_imp_below_eps = t[i] #Store the first occurence
+                break 
+
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
+            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
+            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
+        )
+    
+    else: #If we decide to only use the integral as criterium
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
+        )
