@@ -314,6 +314,7 @@ def solve_predator_prey_model(
     t_n: float
 ):
     '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model.
+    The first impulsion is at t=T
     
     Param:
         xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
@@ -336,7 +337,7 @@ def solve_predator_prey_model(
         t_n: right endpoint of the domain
 
     Example of run:
-        exo.solve_predator_prey_model(
+        double_exo.solve_predator_prey_model(
         xy=x0y0_a,
         t=tt,
         gamma=gamma,
@@ -442,7 +443,7 @@ def solve_pp_model_mortality_at_t_0(
         t_n: right endpoint of the domain
 
     Example of run:
-        exo.solve_pp_model_mortality_at_t_0(
+        double_exo.solve_pp_model_mortality_at_t_0(
         xy=x0y0_a,
         t=tt,
         gamma=gamma,
@@ -495,6 +496,126 @@ def solve_pp_model_mortality_at_t_0(
                          args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m)) 
         x.extend(xy_step.T[0]) #Continuous part of x
         y.extend(xy_step.T[1]) #Continuous part of y
+        I.extend(xy_step.T[2]) #Integral of x
+        t.extend(tspan)
+
+    return t, x, y, I
+
+def solve_pp_choose_first_impulsion(
+    xyI,
+    t,
+    gamma: float,
+    E_x: float,
+    E_y: float,
+    T: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float],
+    func_h_x: Callable[..., float],
+    kwargs_h_x: dict[str, float], 
+    func_h_y: Callable[..., float],
+    kwargs_h_y: dict[str, float],
+    t_0: float,
+    t_n: float,
+    t_pulse: float
+):
+    '''This function aims to be a general predator-prey model where the user decides on the functions that will be used in the model.
+    The user chooses the first impulsion time.
+    
+    Param:
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_x: taking effort for pests
+        E_y: taking effort for predators
+        T: release period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        func_h_x: harvesting function for x
+        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h that are not x(nT). x(nT) is the first argument of func_h
+        func_h_y: harvesting function for y
+        kwargs_h_y: a dictionnary of the arguments of the other arguments of func_h that are not y(nT). y(nT) is the first argument of func_h
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        t_pulse: first impulsion time
+
+    Example of run:
+        double_exo.solve_pp_choose_first_impulsion(
+        xy=x0y0_a,
+        t=tt,
+        gamma=gamma,
+        E_x=E_x,
+        E_y=E_y,
+        T=T,
+        func_g=double_exo.identity_x,
+        kwargs_g={'z': r},
+        func_f=double_exo.multiply_x,
+        kwargs_f={'z': a}, 
+        func_m=double_exo.identity,
+        kwargs_m={'z': m},
+        func_h_x=double_exo.return_x_x,
+        kwargs_h_x={},
+        func_h_y=double_exo.return_y_y,
+        kwargs_h_y={},
+        t_0=t_0,
+        t_n=t_n  
+        )
+
+    Return: 
+        x, y: values of the solution (x, y) of the ODE
+        t: the time vector that has the same shape as x and y'''
+
+    #Store solution in lists
+    x = [] #empty list
+    y = [] #empty list
+    I = [] #empty list
+
+    #Record initial conditions
+    x.append(xyI[0])
+    y.append(xyI[1])
+    I.append(xyI[2])
+
+    #Time points
+    t = [t_0]
+
+    #Solve ODE
+    ##Define the different intervals
+    #t_before_pulse = np.array([t_0,t_pulse]) #to get the time points before the first impulsion
+    intervals = np.arange(t_pulse, t_n, T) #divide the domain in intervals on length T
+    intervals = np.append(intervals, t_n) #add t_n to intervals because t_n is not reached by arange
+    #intervals = np.concatenate((first_interval,intervals))
+
+    ##Solve before the first impulsion
+    tspan = np.linspace(t_0,t_pulse,101) #tspan before the first impulsion
+    xy_step = odeint(predator_prey_model, xyI, tspan, #The initial value is the initial value of whole domain
+                     args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m))
+    x.extend(xy_step.T[0]) #x before first impulsion
+    x_kT_plus = xy_step.T[0][-1] - E_x*func_h_x(xy_step.T[0][-1], **kwargs_h_x) #First impulsion on x
+    y.extend(xy_step.T[1]) #y before first impulsion
+    y_kT_plus = xy_step.T[1][-1] - E_y*func_h_y(xy_step.T[1][-1], **kwargs_h_y) #First impulsion on x
+    I.extend(xy_step.T[2]) #Integral of x
+    t.extend(tspan)
+
+    ##Solve after the first impulsion
+    for i in range(1,len(intervals)):
+        xyI_kT_plus = [x_kT_plus,y_kT_plus,I[-1]] #the initial value in a period is [x(kT+), y(kT+), I(kT+)]
+        ###Span for this period
+        tspan = np.linspace(intervals[i-1], intervals[i], 101)
+        tspan = np.append(tspan, intervals[i]) 
+        ###Solve for this period
+        xy_step = odeint(predator_prey_model, xyI_kT_plus, tspan, 
+                         args=(gamma, func_g, kwargs_g, func_f, kwargs_f, func_m, kwargs_m)) 
+        x.extend(xy_step.T[0]) #Continuous part of x
+        x_kT_plus = xy_step.T[0][-1] - E_x*func_h_x(xy_step.T[0][-1], **kwargs_h_x) #Applying func_h_x to x(nT)
+        y.extend(xy_step.T[1]) #Continuous part of y
+        y_kT_plus = xy_step.T[1][-1] - E_y*func_h_y(xy_step.T[1][-1], **kwargs_h_y) #Applying func_h_y to y(nT)
         I.extend(xy_step.T[2]) #Integral of x
         t.extend(tspan)
 
@@ -930,6 +1051,178 @@ def compare_cont_imp_proportional_mortality_on_x_0(
     plt.ylabel('Population size')
     plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
     plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
+    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+    plt.grid()
+    plt.show()
+
+    ##Integral of x
+    plt.figure()
+    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
+    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
+    plt.xlabel('time')
+    plt.ylabel('Pests population size')
+    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+    plt.grid()
+    plt.show()
+
+    #Evaluate the criteria
+    ##Integral of x at final time
+    I_cont_final = I_cont[-1]
+    I_imp_final = I_imp[-1]
+
+    ##Time until reaching epsilon
+    if find_t_below_eps == True: #Only if we decide to use this criterium
+        t_cont_below_eps = None #Default value if epsilon is never reached
+        t_imp_below_eps = None #Default value if epsilon is never reached
+
+        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+        for i in range(len(x_cont)):
+            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+                t_cont_below_eps = t[i] #Store the first occurence
+                break 
+
+        for i in range(len(x_imp)):
+            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+                t_imp_below_eps = t[i] #Store the first occurence
+                break 
+
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
+            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
+            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
+        )
+    
+    else: #If we decide to only use the integral as criterium
+        return ( 
+            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
+            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
+        )
+    
+def compare_cont_imp_proportional_mortality_on_x(
+    xyI0_imp,
+    xyI0_cont,
+    t,
+    gamma: float,
+    E_c: float,
+    T: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float,
+    t_pulse:float,
+    find_t_below_eps: bool = False,
+    eps: float = 0.01
+):
+    
+    '''This function plots the population size of x and y for two models:
+    (the model with proportional continuous mortality on x;
+    the model with proportional impulsive mortality on x)
+    We remark that the mortality is only on x.
+    That's why the arguments E_y, func_h_y and kwargs_h_y are not there.
+    It also returns the values of the criteria to compare between impulsive and continuous model.
+    The first criterium is the integral of x.
+    The second criterium is the time to reach a low value which is epsilon (only if asked)
+
+    The first event of mortality is at t=t_pulse
+    
+    Param:
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests
+        T: release period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        func_h_x: harvesting function for x
+        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        t_pulse: time of first impulsion
+        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
+        eps: the threshold below which we want to have the population of pests'''
+    
+    #Solve ODE
+    ##Impulsive
+    xyI_imp = solve_pp_choose_first_impulsion( #The one thing that changes is the solver used
+        xyI=xyI0_imp,
+        t=t,
+        gamma=gamma,
+        E_x= 1 - np.exp(-E_c*T), #Impulsive E
+        E_y=0, #No exogenous mortality on y
+        T=T,
+        func_g=func_g,
+        kwargs_g=kwargs_g,
+        func_f=func_f,
+        kwargs_f=kwargs_f, 
+        func_m=func_m,
+        kwargs_m=kwargs_m,
+        func_h_x=return_x_x, #Proportional exogenous mortality
+        kwargs_h_x={}, #Proportional exogenous mortality
+        func_h_y=return_zero_y, #No exogenous mortality on y
+        kwargs_h_y={}, #No exogenous mortality on y
+        t_0=t_0,
+        t_n=t_n,
+        t_pulse=t_pulse  
+        )
+    x_imp = xyI_imp[1]
+    y_imp = xyI_imp[2]
+    I_imp = xyI_imp[3]
+    
+    ##Continuous
+    func_g_sub_Ec = modify_func_Ec(func_g) #Create the new function g with continuous exogenous mortality
+    kwargs_g_sub_Ec = {**kwargs_g, 'E_c' : E_c} #The argument of the new function func_g_sub_Ec.
+                                                # **kwargs_g: the arguments of the previous func_g; 
+                                                #E_c: the supplementary argument of func_g_sub_Ec
+
+    xyI_cont = solve_pp_choose_first_impulsion( #The one thing that changes is the solver used
+            xyI=xyI0_cont,
+            t=t,
+            gamma=gamma,
+            E_x=0, #Continuous exogenous mortality, so no impulsive part
+            E_y=0, #No exogenous mortality on y
+            T=T,
+            func_g=func_g_sub_Ec,
+            kwargs_g=kwargs_g_sub_Ec,
+            func_f=func_f,
+            kwargs_f=kwargs_f, 
+            func_m=func_m,
+            kwargs_m=kwargs_m,
+            func_h_x=return_zero_x, #Continuous exogenous mortality, so no impulsive part
+            kwargs_h_x={}, #Continuous exogenous mortality, so no impulsive part
+            func_h_y=return_zero_y, #No exogenous mortality on y
+            kwargs_h_y={}, #No exogenous mortality on y
+            t_0=t_0,
+            t_n=t_n,
+            t_pulse=t_pulse  
+            )
+    x_cont = xyI_cont[1]
+    y_cont = xyI_cont[2]
+    I_cont = xyI_cont[3]
+
+    t = xyI_cont[0]
+
+    #Plot results
+    ##Evolution of the populations
+    plt.figure()
+    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+    plt.xlabel('time')
+    plt.ylabel('Population size')
+    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = {t_pulse}')
+    plt.suptitle(f'{kwargs_g}, {E_c = }, {T = },')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
