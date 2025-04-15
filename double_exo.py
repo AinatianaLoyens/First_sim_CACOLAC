@@ -642,7 +642,7 @@ def modify_func_Ec(func_g):
         return result - E_c
     return new_func_g
 
-#Functions to plot results
+#Functions to plot results and to compare the criteria
 
 def plot_pop_mortality_on_x_logistic_LV(
     xyI,
@@ -776,25 +776,23 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     kwargs_m: dict[str, float], 
     t_0: float,
     t_n: float,
-    find_t_below_eps: bool = False,
-    eps: float = 0.01
-
+    eps: float = 0.01,
+    plot_population: bool = False
 ):
     
-    '''This functions plots the population size of x and y for two models:
+    '''This function returns the values of the criteria to compare between impulsive and continuous model.
+    This function also plots (if wanted) the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
+    
     We remark that the mortality is only on x.
-    That's why the arguments E_y, func_h_y and kwargs_h_y are not there
+    That's why the arguments E_y, func_h_y and kwargs_h_y are not there.
     It also returns the values of the criteria to compare between impulsive and continuous model.
-    The first criterium is the integral of x.
-    The second criterium is the time to reach a low value which is epsilon (only if asked).
 
     The first event of mortality is at t=T
     
     Param:
-        xyI0_imp: initial values [x0,y0,I0] for the impulsive model. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
-        xyI0_cont: initial values [x0,y0,I0] for the continuous model. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        xyI: a list of values of [x,y,I] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
         t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
         gamma: conversion factor
         E_c: continuous taking effort for pests
@@ -809,12 +807,23 @@ def compare_cont_imp_proportional_mortality_on_x_T(
         kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
-        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
-        eps: the threshold below which we want to have the population of pests'''
+        eps: the threshold below which we want to have the population of pests
+        plot_population: to precise if we want to plot the population size
+        
+    Return:
+        A dictionnary with the following values:
+            T: period (already in the arguments)
+            I_cont_final: integral of x_cont at the final time
+            I_imp_final: integral of x_imp at the final time
+            eps: the threshold below which we want to have the population of pests (already in the arguments)
+            t_pulse: time of first impulsion (T for this function)
+            t_eta_cont:the smallest t_eta such that for all t > t_eta, x_cont(t) < eps
+            t_eta_imp:the smallest t_eta such that for all t > t_eta, x_imp(t) < eps
+            t_eta_imp - t_eta_cont: difference between t_eta_imp and t_eta_cont. Can be negative if t_eta_cont > t_eta_imp (only if the threshold is reached)'''
     
     #Solve ODE
     ##Impulsive
-    xyI_imp = solve_predator_prey_model(
+    xyI_imp = solve_predator_prey_model( #The one thing that changes is the solver used
         xyI=xyI0_imp,
         t=t,
         gamma=gamma,
@@ -837,8 +846,6 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     x_imp = xyI_imp[1]
     y_imp = xyI_imp[2]
     I_imp = xyI_imp[3]
-
-    t = xyI_imp[0]
     
     ##Continuous
     func_g_sub_Ec = modify_func_Ec(func_g) #Create the new function g with continuous exogenous mortality
@@ -846,7 +853,7 @@ def compare_cont_imp_proportional_mortality_on_x_T(
                                                 # **kwargs_g: the arguments of the previous func_g; 
                                                 #E_c: the supplementary argument of func_g_sub_Ec
 
-    xyI_cont = solve_predator_prey_model(
+    xyI_cont = solve_predator_prey_model( #The one thing that changes is the solver used
             xyI=xyI0_cont,
             t=t,
             gamma=gamma,
@@ -874,64 +881,47 @@ def compare_cont_imp_proportional_mortality_on_x_T(
 
     #Plot results
     ##Evolution of the populations
-    plt.figure()
-    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
-    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
-    plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
-
-    ##Integral of x
-    plt.figure()
-    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
-    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Pests population size')
-    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
+    if plot_population:
+        plt.figure()
+        plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+        plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        plt.xlabel('time')
+        plt.ylabel('Population size')
+        plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+        plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
+        plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+        plt.grid()
+        plt.show()
 
     #Evaluate the criteria
     ##Integral of x at final time
     I_cont_final = I_cont[-1]
     I_imp_final = I_imp[-1]
 
-    ##Time until reaching epsilon
-    if find_t_below_eps == True: #Only if we decide to use this criterium
-        t_cont_below_eps = None #Default value if epsilon is never reached
-        t_imp_below_eps = None #Default value if epsilon is never reached
+    ##Time t_eta when epsilon is reached
+    t_eta_cont = None #Default value if epsilon is never reached
+    t_eta_imp = None #Default value if epsilon is never reached
 
-        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
-        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
-        for i in range(len(x_cont)):
-            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
-                t_cont_below_eps = t[i] #Store the first occurence
-                break 
+    x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+    x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+    for i in range(len(x_cont)):
+        if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_cont = t[i] #Store the first occurence
+            break 
 
-        for i in range(len(x_imp)):
-            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
-                t_imp_below_eps = t[i] #Store the first occurence
-                break 
+    for i in range(len(x_imp)):
+        if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_imp = t[i] #Store the first occurence
+            break 
 
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
-            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
-            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
-        )
-    
-    else: #If we decide to only use the integral as criterium
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
-        )
+    if t_eta_cont == None or t_eta_imp == None: #A substraction with a None is impossible
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': T, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp}
+    else:
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': T, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp, 't_eta_imp - t_eta_cont':t_eta_imp - t_eta_cont}
 
 def compare_cont_imp_proportional_mortality_on_x_0(
     xyI0_imp,
@@ -948,18 +938,18 @@ def compare_cont_imp_proportional_mortality_on_x_0(
     kwargs_m: dict[str, float], 
     t_0: float,
     t_n: float,
-    find_t_below_eps: bool = False,
-    eps: float = 0.01
+    eps: float = 0.01,
+    plot_population: bool = False
 ):
     
-    '''This function plots the population size of x and y for two models:
+    '''This function returns the values of the criteria to compare between impulsive and continuous model.
+    This function also plots (if wanted) the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
+    
     We remark that the mortality is only on x.
     That's why the arguments E_y, func_h_y and kwargs_h_y are not there.
     It also returns the values of the criteria to compare between impulsive and continuous model.
-    The first criterium is the integral of x.
-    The second criterium is the time to reach a low value which is epsilon (only if asked)
 
     The first event of mortality is at t=0
     
@@ -979,8 +969,19 @@ def compare_cont_imp_proportional_mortality_on_x_0(
         kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
-        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
-        eps: the threshold below which we want to have the population of pests'''
+        eps: the threshold below which we want to have the population of pests
+        plot_population: to precise if we want to plot the population size
+        
+    Return:
+        A dictionnary with the following values:
+            T: period (already in the arguments)
+            I_cont_final: integral of x_cont at the final time
+            I_imp_final: integral of x_imp at the final time
+            eps: the threshold below which we want to have the population of pests (already in the arguments)
+            t_pulse: time of first impulsion (0 for this function)
+            t_eta_cont:the smallest t_eta such that for all t > t_eta, x_cont(t) < eps
+            t_eta_imp:the smallest t_eta such that for all t > t_eta, x_imp(t) < eps
+            t_eta_imp - t_eta_cont: difference between t_eta_imp and t_eta_cont. Can be negative if t_eta_cont > t_eta_imp (only if the threshold is reached)'''
     
     #Solve ODE
     ##Impulsive
@@ -1042,64 +1043,49 @@ def compare_cont_imp_proportional_mortality_on_x_0(
 
     #Plot results
     ##Evolution of the populations
-    plt.figure()
-    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
-    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
-    plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
-
-    ##Integral of x
-    plt.figure()
-    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
-    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Pests population size')
-    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
+    if plot_population:
+        plt.figure()
+        plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+        plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        plt.xlabel('time')
+        plt.ylabel('Population size')
+        plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+        plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
+        plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+        plt.grid()
+        plt.show()
 
     #Evaluate the criteria
     ##Integral of x at final time
     I_cont_final = I_cont[-1]
     I_imp_final = I_imp[-1]
 
-    ##Time until reaching epsilon
-    if find_t_below_eps == True: #Only if we decide to use this criterium
-        t_cont_below_eps = None #Default value if epsilon is never reached
-        t_imp_below_eps = None #Default value if epsilon is never reached
+    ##Time t_eta when epsilon is reached
+    t_eta_cont = None #Default value if epsilon is never reached
+    t_eta_imp = None #Default value if epsilon is never reached
 
-        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
-        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
-        for i in range(len(x_cont)):
-            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
-                t_cont_below_eps = t[i] #Store the first occurence
-                break 
+    x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+    x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+    for i in range(len(x_cont)):
+        if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_cont = t[i] #Store the first occurence
+            break 
 
-        for i in range(len(x_imp)):
-            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
-                t_imp_below_eps = t[i] #Store the first occurence
-                break 
+    for i in range(len(x_imp)):
+        if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_imp = t[i] #Store the first occurence
+            break 
 
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
-            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
-            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
-        )
-    
-    else: #If we decide to only use the integral as criterium
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
-        )
+    if t_eta_cont == None or t_eta_imp == None: #A substraction with a None is impossible
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': 0, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp}
+    else:
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': 0, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp, 't_eta_imp - t_eta_cont':t_eta_imp - t_eta_cont}
+
+
     
 def compare_cont_imp_proportional_mortality_on_x(
     xyI0_imp,
@@ -1117,18 +1103,18 @@ def compare_cont_imp_proportional_mortality_on_x(
     t_0: float,
     t_n: float,
     t_pulse:float,
-    find_t_below_eps: bool = False,
-    eps: float = 0.01
+    eps: float = 0.01,
+    plot_population: bool = False
 ):
     
-    '''This function plots the population size of x and y for two models:
+    '''This function returns the values of the criteria to compare between impulsive and continuous model.
+    This function also plots (if wanted) the population size of x and y for two models:
     (the model with proportional continuous mortality on x;
     the model with proportional impulsive mortality on x)
+
     We remark that the mortality is only on x.
     That's why the arguments E_y, func_h_y and kwargs_h_y are not there.
     It also returns the values of the criteria to compare between impulsive and continuous model.
-    The first criterium is the integral of x.
-    The second criterium is the time to reach a low value which is epsilon (only if asked)
 
     The first event of mortality is at t=t_pulse
     
@@ -1137,7 +1123,7 @@ def compare_cont_imp_proportional_mortality_on_x(
         t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
         gamma: conversion factor
         E_c: continuous taking effort for pests
-        T: release period
+        T: period
         func_g: the growth rate function
         kwargs_g: a dictionnary of the arguments of func_g
         func_f: the response function
@@ -1149,8 +1135,19 @@ def compare_cont_imp_proportional_mortality_on_x(
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         t_pulse: time of first impulsion
-        find_t_below_eps: to tell if we want to use the criterium of the time until reaching an epsilon
-        eps: the threshold below which we want to have the population of pests'''
+        eps: the threshold below which we want to have the population of pests
+        plot_population: to precise if we want to plot the population size
+        
+    Return:
+        A dictionnary with the following values:
+            T: period (already in the arguments)
+            I_cont_final: integral of x_cont at the final time
+            I_imp_final: integral of x_imp at the final time
+            eps: the threshold below which we want to have the population of pests (already in the arguments)
+            t_pulse: time of first impulsion (already in the arguments)
+            t_eta_cont:the smallest t_eta such that for all t > t_eta, x_cont(t) < eps
+            t_eta_imp:the smallest t_eta such that for all t > t_eta, x_imp(t) < eps
+            t_eta_imp - t_eta_cont: difference between t_eta_imp and t_eta_cont. Can be negative if t_eta_cont > t_eta_imp (only if the threshold is reached)'''
     
     #Solve ODE
     ##Impulsive
@@ -1214,61 +1211,43 @@ def compare_cont_imp_proportional_mortality_on_x(
 
     #Plot results
     ##Evolution of the populations
-    plt.figure()
-    plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-    plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
-    plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-    plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Population size')
-    plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = {t_pulse}')
-    plt.suptitle(f'{kwargs_g}, {E_c = }, {T = },')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
-
-    ##Integral of x
-    plt.figure()
-    plt.plot(t, I_cont, linestyle='-', label=f'I_cont with {xyI0_cont} as initial value')
-    plt.plot(t, I_imp, linestyle='--', label=f'I_imp with {xyI0_imp} as initial value')
-    plt.xlabel('time')
-    plt.ylabel('Pests population size')
-    plt.title(f'Integral of x with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
-    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
-    plt.grid()
-    plt.show()
+    if plot_population:
+        plt.figure()
+        plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+        plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        plt.xlabel('time')
+        plt.ylabel('Population size')
+        plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = {t_pulse}')
+        plt.suptitle(f'{kwargs_g}, {E_c = }, {T = },')
+        plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+        plt.grid()
+        plt.show()
 
     #Evaluate the criteria
     ##Integral of x at final time
     I_cont_final = I_cont[-1]
     I_imp_final = I_imp[-1]
 
-    ##Time until reaching epsilon
-    if find_t_below_eps == True: #Only if we decide to use this criterium
-        t_cont_below_eps = None #Default value if epsilon is never reached
-        t_imp_below_eps = None #Default value if epsilon is never reached
+    ##Time t_eta when epsilon is reached
+    t_eta_cont = None #Default value if epsilon is never reached
+    t_eta_imp = None #Default value if epsilon is never reached
 
-        x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
-        x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
-        for i in range(len(x_cont)):
-            if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
-                t_cont_below_eps = t[i] #Store the first occurence
-                break 
+    x_cont = np.array(x_cont, dtype=float) #Convert x_cont into array
+    x_imp = np.array(x_imp, dtype=float) #Convert x_cont into array
+    for i in range(len(x_cont)):
+        if np.all(x_cont[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_cont= t[i] #Store the smallest t_eta such that for all t > t_eta, x_cont(t) < eps
+            break 
 
-        for i in range(len(x_imp)):
-            if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
-                t_imp_below_eps = t[i] #Store the first occurence
-                break 
-
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}",
-            f"The time for x to reach {eps} with continuous exogenous mortality is {t_cont_below_eps}",
-            f"The time for x to reach {eps} with impulsive exogenous mortality is {t_imp_below_eps}"
-        )
-    
-    else: #If we decide to only use the integral as criterium
-        return ( 
-            f"The final value of the integral of x with continuous exogenous mortality is {I_cont_final}",
-            f"The final value of the integral of x with impulsive exogenous mortality is {I_imp_final}"
-        )
+    for i in range(len(x_imp)):
+        if np.all(x_imp[i:] < eps): #Test if all value after i is below epsilon
+            t_eta_imp = t[i] #Store the smallest t_eta such that for all t > t_eta, x_imp(t) < eps
+            break 
+    if t_eta_cont == None or t_eta_imp == None: #A substraction with a None is impossible
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': t_pulse, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp}
+    else:
+        return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
+                'eps': eps, 't_pulse': t_pulse, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp, 't_eta_imp - t_eta_cont':t_eta_imp - t_eta_cont}
