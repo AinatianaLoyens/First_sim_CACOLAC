@@ -889,7 +889,7 @@ def compare_cont_imp_proportional_mortality_on_x_T(
         plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
         plt.xlabel('time')
         plt.ylabel('Population size')
-        plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
+        plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
         plt.suptitle(f'{kwargs_g}, {E_c = }, {T = }')
         plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
         plt.grid()
