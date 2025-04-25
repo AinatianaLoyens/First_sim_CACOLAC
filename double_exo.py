@@ -1251,3 +1251,6 @@ def compare_cont_imp_proportional_mortality_on_x(
     else:
         return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
                 'eps': eps, 't_pulse': t_pulse, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp, 't_eta_imp - t_eta_cont':t_eta_imp - t_eta_cont}
+    
+#Functions to plot graphs of the criteria
+##Those functions simulate the criteria for many values of parameters using for loops
