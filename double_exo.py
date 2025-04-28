@@ -1279,7 +1279,7 @@ def plot_t_eta_of_eps_prop_mortality_on_x(
     eps_num: int = 100
 ):
     '''This function plots t_eta with respect to a range of different epsilon.
-    t_eta is the time until reaching the threshaold epsilon
+    t_eta is the time until reaching the threshold epsilon
     Two graphs (one for impulsive and one for continuous) are on the same plot.
     
     Param:
@@ -1346,4 +1346,85 @@ def plot_t_eta_of_eps_prop_mortality_on_x(
     plt.title(f'Time to reach epsilon with respect to epsilon with {T=} and {t_pulse=}')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
+    plt.show() 
+
+def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
+    xyI0_imp,
+    xyI0_cont,
+    t,
+    gamma: float,
+    E_c: float,
+    T: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float,
+    eps: float = 0.01
+):
+    '''This function plots t_eta_imp - t_eta_cont with respect to a range of t_pulse from 0 to T.
+    t_eta_imp is the time for the impulsive model to reach the threshaold epsilon.
+    t_eta_cont is the time for the continuous model to reach the threshaold epsilon.
+    Two graphs (one for impulsive and one for continuous) are on the same plot.
+    
+    Param:
+        xyI0_imp: a list of values of [x_imp,y_imp,I_imp] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        xyI0_cont: a list of values of [x_cont,y_cont,I_cont] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests
+        T: period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        func_h_x: harvesting function for x
+        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        eps: the threshold below which we want to have the population of pests'''
+    
+    #The array of t_pulse
+    t_pulse_array = np.linspace(0, T, 100)
+    #The array of t_eta_imp - t_eta_cont
+    diff_t_eta_array = np.zeros_like(t_pulse_array) #array for t_eta_imp - t_eta_cont with respect for each t_pulse_array
+    for i in range(len(t_pulse_array)):
+        criteria = compare_cont_imp_proportional_mortality_on_x( #Store the criteria dictionnary in a variable
+            xyI0_imp= xyI0_imp,
+            xyI0_cont= xyI0_cont,
+            t=t,
+            gamma=gamma,
+            E_c=E_c,
+            T=T,
+            func_g=func_g,
+            kwargs_g=kwargs_g,
+            func_f=func_f,
+            kwargs_f=kwargs_f, 
+            func_m=func_m,
+            kwargs_m=kwargs_m,
+            t_0=t_0,
+            t_n=t_n,
+            t_pulse=t_pulse_array[i],
+            eps=eps,
+            plot_population=False
+            )
+        if criteria['t_eta_imp'] is not None and  criteria['t_eta_cont'] is not None: #Verify if eps is reached for both model
+            diff_t_eta_array[i] = criteria['t_eta_imp - t_eta_cont']
+        else:
+            return "epsilon is not reached for at least one t_pulse"
+        
+    #Plot the graph got
+    plt.figure()
+    plt.plot(t_pulse_array, diff_t_eta_array, color = (0.3,0.4,1), linestyle = '-', label= 'Difference of time to reach the threshold')
+    plt.xlabel('t_pulse')
+    plt.ylabel('t_eta_imp - t_eta_cont')
+    plt.title(f'Difference of time to reach epsilon with respect to t_pulse with {T=} and {eps=}')
+    plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+    plt.grid()
     plt.show()
+
