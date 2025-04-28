@@ -804,8 +804,6 @@ def compare_cont_imp_proportional_mortality_on_x_T(
         kwargs_f: a dictionnary of the arguments of func_f
         func_m: mortality rate function
         kwargs_m: a dictionnary of the arguments of func_m
-        func_h_x: harvesting function for x
-        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests
@@ -967,8 +965,6 @@ def compare_cont_imp_proportional_mortality_on_x_0(
         kwargs_f: a dictionnary of the arguments of func_f
         func_m: mortality rate function
         kwargs_m: a dictionnary of the arguments of func_m
-        func_h_x: harvesting function for x
-        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests
@@ -1133,8 +1129,6 @@ def compare_cont_imp_proportional_mortality_on_x(
         kwargs_f: a dictionnary of the arguments of func_f
         func_m: mortality rate function
         kwargs_m: a dictionnary of the arguments of func_m
-        func_h_x: harvesting function for x
-        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         t_pulse: time of first impulsion
@@ -1295,8 +1289,6 @@ def plot_t_eta_of_eps_prop_mortality_on_x(
         kwargs_f: a dictionnary of the arguments of func_f
         func_m: mortality rate function
         kwargs_m: a dictionnary of the arguments of func_m
-        func_h_x: harvesting function for x
-        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         t_pulse: time of first impulsion
@@ -1383,8 +1375,6 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
         kwargs_f: a dictionnary of the arguments of func_f
         func_m: mortality rate function
         kwargs_m: a dictionnary of the arguments of func_m
-        func_h_x: harvesting function for x
-        kwargs_h_x: a dictionnary of the arguments of the other arguments of func_h_x that is not x(nT). x(nT) is the first argument of func_h_x
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests'''
@@ -1428,3 +1418,106 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
     plt.grid()
     plt.show()
 
+#Functions to retrieve the initial value of the last period.
+def give_init_value_last_period_prop_mortality_on_x(
+    xyI,
+    t,
+    gamma:float,
+    E_c:float,
+    T:float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float,
+    plot_population: bool = False
+): 
+    '''This function retrieves the initial value of the last period for a proportional mortality on x.
+    
+    Param:
+        xyI: initial value [x0, y0, I0] with I0 always equal to 0 because teh integral of x always begins at 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests. We enter the continuous effort because we always refer at the continuous effort. For example for the stability.
+    Later on the code, it will be converted into impulsive effort but it's better to have the continuous effort as an argument
+        T: period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        
+    Return:
+        x_nT_plus_last: initial value of the last period'''
+    
+    #Solve the model to have t and x
+    xyI_imp = solve_predator_prey_model(
+        xyI=xyI,
+        t=t,
+        gamma=gamma,
+        E_x= 1 - np.exp(-E_c*T), #E for impulsive
+        E_y=0, #useless because it will be multiplied by 0. It's just to not lose the E
+        T=T,
+        func_g=func_g,
+        kwargs_g=kwargs_g,
+        func_f=func_f,
+        kwargs_f=kwargs_f, 
+        func_m=func_m,
+        kwargs_m=kwargs_m,
+        func_h_x=return_x_x,
+        kwargs_h_x={},
+        func_h_y=return_zero_y, 
+        kwargs_h_y={},
+        t_0=t_0,
+        t_n=t_n  
+        )
+    
+    t_list = xyI_imp[0] #time points
+    x_list = xyI_imp[1] #population size with respect to time
+
+    #Find the last pulse time: it's the last time point that appears twice
+    unique, counts = np.unique(t_list, return_counts=True) #All the time points with their number of appearences in t
+    doubles = unique[counts > 1] #All the time points that appear more than once (i.e. every time of pulse)
+
+    if len(doubles) == 0:
+        return "No duplicates found in t." #An error message if there is no double (for example if t_n < T)
+
+    last_pulse_time = doubles[-2] #Because t_n is already a double by the way solve_predator_prey is coded
+
+    # The indexes where t_list == last_pulse_time
+    indexes = np.where(t_list == last_pulse_time )[0]
+
+    # Last index of the last pulse time (i.e. the index of the last nT_plus)
+    nT_plus_last_index = indexes[-1]
+
+    # Retrieve x at this index
+    x_nT_plus_last = x_list[nT_plus_last_index]
+
+    if plot_population:
+        compare_cont_imp_proportional_mortality_on_x(
+        xyI0_imp= xyI,
+        xyI0_cont= xyI,
+        t=t,
+        gamma=gamma,
+        E_c=E_c,
+        T=T,
+        func_g=func_g,
+        kwargs_g=kwargs_g,
+        func_f=func_f,
+        kwargs_f=kwargs_f, 
+        func_m=func_m,
+        kwargs_m=kwargs_m,
+        t_0=t_0,
+        t_n=t_n,
+        t_pulse=T,
+        eps=0.01,
+        plot_population=True
+    )
+
+    return x_nT_plus_last
