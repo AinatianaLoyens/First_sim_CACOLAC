@@ -1562,7 +1562,7 @@ def store_x_p_0_prop_mortality_on_x(
         x_p_0_array: an array with all the estimated initial values with respect to E_c'''
     
     #The array of E_c
-    E_c_array = np.linspace(E_c_start, E_c_stop, E_c_num, endpoint=False) #endpoint=False because we don't take the bifurcation point
+    E_c_array = np.linspace(E_c_start, E_c_stop, E_c_num) 
     #The array of the initial value of the periodic solution
     x_p_0_array = np.zeros_like(E_c_array) 
     for i in range(len(E_c_array)):
@@ -1583,4 +1583,4 @@ def store_x_p_0_prop_mortality_on_x(
         plot_population=False
     )
         
-    return x_p_0_array
+    return E_c_array, x_p_0_array
