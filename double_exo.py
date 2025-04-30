@@ -1335,7 +1335,8 @@ def plot_t_eta_of_eps_prop_mortality_on_x(
     plt.plot(eps_array, t_eta_imp_array, color = (0.3,0.4,1), linestyle = '--', label= 'Time for the impulsive model to reach the threshold')
     plt.xlabel('epsilon')
     plt.ylabel('time to reach epsilon')
-    plt.title(f'Time to reach epsilon with respect to epsilon with {T=} and {t_pulse=}')
+    plt.suptitle(f'{T=}, {t_pulse=}, initial value for impulsive model: {xyI0_imp}, initial value for continuous model: {xyI0_cont}')
+    plt.title(f'Time to reach epsilon with respect to epsilon')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show() 
@@ -1413,12 +1414,14 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
     plt.plot(t_pulse_array, diff_t_eta_array, color = (0.3,0.4,1), linestyle = '-', label= 'Difference of time to reach the threshold')
     plt.xlabel('t_pulse')
     plt.ylabel('t_eta_imp - t_eta_cont')
-    plt.title(f'Difference of time to reach epsilon with respect to t_pulse with {T=} and {eps=}')
+    plt.suptitle(f'{T=}, {eps=}, initial value for impulsive model: {xyI0_imp}, initial value for continuous model: {xyI0_cont}')
+    plt.title(f'Difference of time to reach epsilon with respect to t_pulse')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
 
 #Functions to retrieve the initial value of the last period.
+    
 def give_init_value_last_period_prop_mortality_on_x(
     xyI,
     t,
