@@ -1438,7 +1438,7 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
     T_start: float,
     T_stop: float,
     T_num: int,
-    t_pulse_over_T_array_num: int = 101,
+    t_pulse_over_T_array_num: int = 51,
     levels = None,
     alpha: float = 1,
     cmap = 'inferno',    
@@ -1464,8 +1464,8 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
         eps: the threshold below which we want to have the population of pests
         T_start: beginning of the T array
         T_stop: end of the T array
-        T_num: number of point in the T array
-        t_pulse_over_T_array_num: number of point in the t_pulse/T array
+        T_num: number of point in the T array. Do not make it too great to not make the code too slow
+        t_pulse_over_T_array_num: number of point in the t_pulse/T array. Do not make it too great to not make the code too slow
 
         Parameters for contourf:
             levels: number and positions of the contour lines / regions
@@ -1508,12 +1508,20 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
                 eps=eps,
                 plot_population=False
                 )
-            diff_t_eta_matrix[i][j] = criteria['t_eta_imp - t_eta_cont']
-
-    #Contour plot
-    ...
-
+            if criteria['t_eta_imp'] is not None and  criteria['t_eta_cont'] is not None: #Verify if eps is reached for both model
+                diff_t_eta_matrix[i][j] = criteria['t_eta_imp - t_eta_cont']
+            else:
+                return "epsilon is not reached at least once" 
     
+    #Contour plot
+    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap)
+    plt.colorbar(contour, label = 't_imp - t_cont')  
+    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with')
+    plt.suptitle(f'{eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
+    plt.xlabel('t_pulse / T')
+    plt.ylabel('T')
+    plt.show()
+   
 #Functions to retrieve the initial value of the last period.
     
 def give_init_value_last_period_prop_mortality_on_x(
