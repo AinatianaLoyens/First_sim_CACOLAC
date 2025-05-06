@@ -1435,9 +1435,9 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
     t_0: float,
     t_n: float,
     eps: float,
-    T_start: float,
-    T_stop: float,
-    T_num: int,
+    T_start: float = 1,
+    T_stop: float = 20,
+    T_num: int = 20,
     t_pulse_over_T_array_num: int = 51,
     levels = None,
     alpha: float = 1,
@@ -1462,10 +1462,10 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
         t_0: left endpoint of the domain
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests
-        T_start: beginning of the T array
+        T_start: beginning of the T array. Do not make it too small to not make the code too slow (because of the small part: too much tspan)
         T_stop: end of the T array
-        T_num: number of point in the T array. Do not make it too great to not make the code too slow
-        t_pulse_over_T_array_num: number of point in the t_pulse/T array. Do not make it too great to not make the code too slow
+        T_num: number of point in the T array. Do not make it too big to not make the code too slow (because of the for loop)
+        t_pulse_over_T_array_num: number of point in the t_pulse/T array. Do not make it too big to not make the code too slow (because of the for loop)
 
         Parameters for contourf:
             levels: number and positions of the contour lines / regions
