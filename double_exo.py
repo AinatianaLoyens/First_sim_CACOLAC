@@ -1526,8 +1526,114 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     plt.ylabel('T')
     plt.show()
 
-def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x():
-    ...
+def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
+    xyI0_imp,
+    xyI0_cont,
+    t,
+    gamma: float,
+    E_c: float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float,
+    eps: float,
+    T_start: float = 1,
+    T_stop: float = 20,
+    T_num: int = 20,
+    t_pulse_array_start: float = 0,
+    t_pulse_array_stop: float = 20,
+    t_pulse_array_num: int = 51,
+    levels=None,
+    alpha: float = 1,
+    cmap = 'bwr',    
+):  
+    '''This function gives the contour plot of t_eta_imp - t_eta_cont with respect to T and t_pulse/T.
+    t_eta_imp is the time for the impulsive model to reach the threshold epsilon.
+    t_eta_cont is the time for the continuous model to reach the threshold epsilon.
+    
+    Param:
+        xyI0_imp: a list of values of [x_imp,y_imp,I_imp] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        xyI0_cont: a list of values of [x_cont,y_cont,I_cont] at a time t_i. I must be 0 because its first the integral of x from t_0 to t_0, which is 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        eps: the threshold below which we want to have the population of pests
+        T_start: beginning of the T array. Do not make it too small to not make the code too slow (because of the small part: too much tspan)
+        T_stop: end of the T array
+        T_num: number of point in the T array. Do not make it too big to not make the code too slow (because of the for loop)
+        t_pulse_start: beginning of the t_pulse array. 
+        t_pulse_stop: end of the t_pulse array
+        t_pulse_num: number of point in the t_pulse array. Do not make it too big to not make the code too slow (because of the for loop)
+
+        Parameters for contourf:
+            levels: number and positions of the contour lines / regions
+            alpha: opacicty
+            cmap: colormap name used to map scalar data to colors
+            '''
+    #Range of t_pulse:
+    t_pulse_array = np.linspace(t_pulse_array_start,t_pulse_array_start,t_pulse_array_num)
+
+    #Range of T:
+    T_array = np.linspace(T_start,T_stop,T_num)
+
+    #Coordinates of the contourplot
+    X, Y = np.meshgrid(t_pulse_array, T_array)
+
+    #Calculation of the difference between t_eta_imp and t_eta_cont
+    ##Matrix with the same shape as the coordinates
+    diff_t_eta_matrix = np.zeros_like(X)
+
+    ##For loops using the criteria calculated
+    for i in range(len(T_array)):
+        for j in range(len(t_pulse_array)):
+            criteria = compare_cont_imp_proportional_mortality_on_x(
+                xyI0_imp= xyI0_imp,
+                xyI0_cont= xyI0_cont,
+                t=t,
+                gamma=gamma,
+                E_c=E_c,
+                T=T_array[i],
+                func_g=func_g,
+                kwargs_g=kwargs_g,
+                func_f=func_f,
+                kwargs_f=kwargs_f, 
+                func_m=func_m,
+                kwargs_m=kwargs_m,
+                t_0=t_0,
+                t_n=t_n,
+                t_pulse=t_pulse_array[j],
+                eps=eps,
+                plot_population=False
+                )
+            if criteria['t_eta_imp'] is not None and  criteria['t_eta_cont'] is not None: #Verify if eps is reached for both model
+                diff_t_eta_matrix[i][j] = criteria['t_eta_imp - t_eta_cont']
+            else:
+                return "epsilon is not reached at least once" 
+            
+    #Contour plot
+    ##Center on 0
+    norm = TwoSlopeNorm(vmin = diff_t_eta_matrix.min(), vcenter=0, vmax = diff_t_eta_matrix.max())
+    ##Plot
+    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
+    plt.colorbar(contour, label = 't_imp - t_cont')  
+    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse with')
+    plt.suptitle(f'{eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
+    plt.xlabel('t_pulse')
+    plt.ylabel('T')
+    plt.show()
+    
 
 #Functions to retrieve the initial value of the last period.
     
