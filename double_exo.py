@@ -9,6 +9,7 @@ import numpy as np
 from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 from typing import Callable
+from matplotlib.colors import TwoSlopeNorm
 
 #Pre-implemented functions that can be used in the models (like in exo.py)
 
@@ -1420,7 +1421,7 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
     plt.grid()
     plt.show()
 
-def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
+def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     xyI0_imp,
     xyI0_cont,
     t,
@@ -1439,9 +1440,9 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
     T_stop: float = 20,
     T_num: int = 20,
     t_pulse_over_T_array_num: int = 51,
-    levels = None,
+    levels=None,
     alpha: float = 1,
-    cmap = 'inferno',    
+    cmap = 'bwr',    
 ):
     '''This function gives the contour plot of t_eta_imp - t_eta_cont with respect to T and t_pulse/T.
     t_eta_imp is the time for the impulsive model to reach the threshold epsilon.
@@ -1514,14 +1515,20 @@ def plot_t_eta_contour_from_t_pulse_T_prop_mortality_on_x(
                 return "epsilon is not reached at least once" 
     
     #Contour plot
-    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap)
+    ##Center on 0
+    norm = TwoSlopeNorm(vmin = diff_t_eta_matrix.min(), vcenter=0, vmax = diff_t_eta_matrix.max())
+    ##Plot
+    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
     plt.colorbar(contour, label = 't_imp - t_cont')  
     plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with')
     plt.suptitle(f'{eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
     plt.xlabel('t_pulse / T')
     plt.ylabel('T')
     plt.show()
-   
+
+def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x():
+    ...
+
 #Functions to retrieve the initial value of the last period.
     
 def give_init_value_last_period_prop_mortality_on_x(
