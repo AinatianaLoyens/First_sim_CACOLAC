@@ -1438,9 +1438,11 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     eps: float,
     T_start: float = 1,
     T_stop: float = 20,
-    T_num: int = 20,
-    t_pulse_over_T_array_num: int = 51,
+    T_num: int = 100,
+    t_pulse_over_T_num: int = 101,
+    plot_function: str = 'contourf',
     levels=None,
+    shading='auto',
     alpha: float = 1,
     cmap = 'bwr',    
 ):
@@ -1469,13 +1471,18 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
         t_pulse_over_T_array_num: number of point in the t_pulse/T array. Do not make it too big to not make the code too slow (because of the for loop)
 
         Parameters for contourf:
-            levels: number and positions of the contour lines / regions
+            plot_function: the 2D plotting function used. It must be 'contourf' or 'pcolormesh'
+            levels: number and positions of the contour lines / regions in contourf is used
+            shading: fill style for the quadrilateral if pcolormesh is used
             alpha: opacicty
             cmap: colormap name used to map scalar data to colors
             '''
-    
+    #Test if the plot function is among 'contourf' and 'pcolormesh'
+    if plot_function not in ['contourf', 'pcolormesh']:
+        return 'The argument plot_function must be "contourf" or "pcolormesh"'
+
     #Range of t_pulse/T (always between 0 and 1):
-    t_pulse_over_T_array = np.linspace(0,1,t_pulse_over_T_array_num)
+    t_pulse_over_T_array = np.linspace(0,1,t_pulse_over_T_num)
 
     #Range of T:
     T_array = np.linspace(T_start,T_stop,T_num)
@@ -1518,10 +1525,12 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     ##Center on 0
     norm = TwoSlopeNorm(vmin = diff_t_eta_matrix.min(), vcenter=0, vmax = diff_t_eta_matrix.max())
     ##Plot
-    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
-    plt.colorbar(contour, label = 't_imp - t_cont')  
-    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with')
-    plt.suptitle(f'{eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
+    if plot_function == 'contourf':
+        contour_plot = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
+    elif plot_function == 'pcolormesh':
+        contour_plot = plt.pcolormesh(X, Y, diff_t_eta_matrix, shading=shading, alpha=alpha, cmap=cmap, norm=norm)
+    plt.colorbar(contour_plot, label = 't_imp - t_cont')  
+    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with {eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
     plt.xlabel('t_pulse / T')
     plt.ylabel('T')
     plt.show()
@@ -1544,10 +1553,12 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
     T_start: float = 1,
     T_stop: float = 20,
     T_num: int = 20,
-    t_pulse_array_start: float = 0,
-    t_pulse_array_stop: float = 20,
-    t_pulse_array_num: int = 51,
+    t_pulse_start: float = 0,
+    t_pulse_stop: float = 20,
+    t_pulse_num: int = 51,
+    plot_function: str = 'pcolormesh',
     levels=None,
+    shading='auto',
     alpha: float = 1,
     cmap = 'bwr',    
 ):  
@@ -1577,13 +1588,23 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
         t_pulse_stop: end of the t_pulse array
         t_pulse_num: number of point in the t_pulse array. Do not make it too big to not make the code too slow (because of the for loop)
 
-        Parameters for contourf:
-            levels: number and positions of the contour lines / regions
-            alpha: opacicty
-            cmap: colormap name used to map scalar data to colors
+        Parameters for contourf of pcolormesh:
+            plot_function: the 2D plotting function used. It must be 'contourf' or 'pcolormesh'
+            levels: number and positions of the contour lines / regions if contourf is used
+            shading: fill style for the quadrilateral if pcolormesh is used
+            alpha: opacicty (works for both)
+            cmap: colormap name used to map scalar data to colors (works for both)
             '''
+    #Test if the plot function is among 'contourf' and 'pcolormesh'
+    if plot_function not in ['contourf', 'pcolormesh']:
+        return 'The argument plot_function must be "contourf" or "pcolormesh"'
+    
+    #A message to inform that t_pulse_array_stop < T_array_stop. That would mean that for the longest periods T, the highest possible values of t_pulse are not simulated. This message doesn't avoid the code to run.
+    if t_pulse_stop < T_stop:
+        print('For the longest periods T, the highest possible values of t_pulse are not simulated')
+
     #Range of t_pulse:
-    t_pulse_array = np.linspace(t_pulse_array_start,t_pulse_array_start,t_pulse_array_num)
+    t_pulse_array = np.linspace(t_pulse_start,t_pulse_stop,t_pulse_num)
 
     #Range of T:
     T_array = np.linspace(T_start,T_stop,T_num)
@@ -1626,10 +1647,12 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
     ##Center on 0
     norm = TwoSlopeNorm(vmin = diff_t_eta_matrix.min(), vcenter=0, vmax = diff_t_eta_matrix.max())
     ##Plot
-    contour = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
-    plt.colorbar(contour, label = 't_imp - t_cont')  
-    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse with')
-    plt.suptitle(f'{eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
+    if plot_function == 'contourf':
+        contour_plot = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
+    elif plot_function == 'pcolormesh':
+        contour_plot = plt.pcolormesh(X, Y, diff_t_eta_matrix, shading=shading, alpha=alpha, cmap=cmap, norm=norm)
+    plt.colorbar(contour_plot, label = 't_imp - t_cont')  
+    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse with \n {eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
     plt.xlabel('t_pulse')
     plt.ylabel('T')
     plt.show()
