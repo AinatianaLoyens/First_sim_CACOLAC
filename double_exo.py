@@ -1530,7 +1530,7 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     elif plot_function == 'pcolormesh':
         contour_plot = plt.pcolormesh(X, Y, diff_t_eta_matrix, shading=shading, alpha=alpha, cmap=cmap, norm=norm)
     plt.colorbar(contour_plot, label = 't_imp - t_cont')  
-    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with {eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
+    plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse/T with \n {eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
     plt.xlabel('t_pulse / T')
     plt.ylabel('T')
     plt.show()
