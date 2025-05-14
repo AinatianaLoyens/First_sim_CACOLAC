@@ -1439,8 +1439,8 @@ def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     T_start: float = 1,
     T_stop: float = 20,
     T_num: int = 100,
-    t_pulse_over_T_num: int = 101,
-    plot_function: str = 'contourf',
+    t_pulse_over_T_num: int = 100,
+    plot_function: str = 'pcolormesh',
     levels=None,
     shading='auto',
     alpha: float = 1,
@@ -1552,15 +1552,16 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
     eps: float,
     T_start: float = 1,
     T_stop: float = 20,
-    T_num: int = 20,
+    T_num: int = 100,
     t_pulse_start: float = 0,
     t_pulse_stop: float = 20,
-    t_pulse_num: int = 51,
+    t_pulse_num: int = 100,
     plot_function: str = 'pcolormesh',
     levels=None,
     shading='auto',
     alpha: float = 1,
-    cmap = 'bwr',    
+    cmap = 'bwr',  
+    plot_T_of_T : bool = False  
 ):  
     '''This function gives the contour plot of t_eta_imp - t_eta_cont with respect to T and t_pulse/T.
     t_eta_imp is the time for the impulsive model to reach the threshold epsilon.
@@ -1647,11 +1648,15 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
     ##Center on 0
     norm = TwoSlopeNorm(vmin = diff_t_eta_matrix.min(), vcenter=0, vmax = diff_t_eta_matrix.max())
     ##Plot
+    ###Chose the plot function
     if plot_function == 'contourf':
         contour_plot = plt.contourf(X, Y, diff_t_eta_matrix, levels=levels, alpha=alpha, cmap=cmap, norm=norm)
     elif plot_function == 'pcolormesh':
         contour_plot = plt.pcolormesh(X, Y, diff_t_eta_matrix, shading=shading, alpha=alpha, cmap=cmap, norm=norm)
-    plt.colorbar(contour_plot, label = 't_imp - t_cont')  
+    plt.colorbar(contour_plot, label = 't_imp - t_cont')
+    ### Draw T=f(T)
+    if plot_T_of_T:
+        plt.plot(T_array, T_array, color = 'red', label='T = t_pulse')  
     plt.title(f'Difference of time to reach epsilon with respect to T and t_pulse with \n {eps=}, {xyI0_imp} as initial value for impulsive model and {xyI0_cont} as initial value for continuous model')
     plt.xlabel('t_pulse')
     plt.ylabel('T')
