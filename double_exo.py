@@ -294,6 +294,8 @@ def predator_prey_model(
     
     return dx, dy, dI
 
+#
+
 def solve_predator_prey_model(
     xyI,
     t,
@@ -1709,7 +1711,7 @@ def give_init_value_last_period_prop_mortality_on_x(
         t=t,
         gamma=gamma,
         E_x= 1 - np.exp(-E_c*T), #E for impulsive
-        E_y=0, #useless because it will be multiplied by 0. It's just to not lose the E
+        E_y=0, #useless because it will be multiplied by 0. It's just to not lose the argument
         T=T,
         func_g=func_g,
         kwargs_g=kwargs_g,
@@ -1768,6 +1770,127 @@ def give_init_value_last_period_prop_mortality_on_x(
     )
 
     return x_nT_plus_last
+
+def find_x_y_p_0_with_error_prop_mortality_on_x(
+    xyI,
+    t,
+    gamma:float,
+    E_c:float,
+    T:float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float = 0,
+    t_n: float = 1000,
+    error:float = 1e-3,
+    plot_population: bool = False
+):
+    '''This function retrieves the initial value of the periodic solution for both x and y and for the impulsive model with proportional mortality on x.
+    
+    Param:
+        xyI: initial value [x0, y0, I0] with I0 always equal to 0 because teh integral of x always begins at 0
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        E_c: continuous taking effort for pests. We enter the continuous effort because we always refer at the continuous effort. For example for the stability.
+    Later on the code, it will be converted into impulsive effort but it's better to have the continuous effort as an argument
+        T: period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain that may not be reached because the periodic solution is reached sooner. It's adviced to make it high
+        error: the difference tolerated between the initial value of a period and the initial value of the previous one
+        
+    Return:
+        x_p_0: estimated initial value of x_p
+        y_p_0: estimated initial value of y_p
+        '''
+    
+    #Initialisation
+
+    ##Initial values of the periodic solution that will be estimated
+    x_p_0 = None
+    y_p_0 = None
+    ##Initial values of the current period
+    x_nT_plus = xyI[0]
+    y_nT_plus = xyI[1]
+    ##Initial values of the next period
+    x_nT_plus_next = None
+    y_nT_plus_next = None
+    ##Vector for the plot
+    x_plot = [xyI[0]]
+    y_plot = [xyI[1]]
+    t_plot = [t_0]
+    ##Index of the number of the current period - 1
+    n=0
+
+    #Recursivity
+    for _ in range(t_0, t_n, T): #period by period #Non non non
+        txyI_span = solve_predator_prey_model(
+            xyI=[x_nT_plus,y_nT_plus,0], #The current function doesn't need the integral
+            t=t,
+            gamma=gamma,
+            E_x= 1 - np.exp(-E_c*T), #E for impulsive
+            E_y=0, #useless because it will be multiplied by 0. It's just to not lose the argument
+            T=T,
+            func_g=func_g,
+            kwargs_g=kwargs_g,
+            func_f=func_f,
+            kwargs_f=kwargs_f, 
+            func_m=func_m,
+            kwargs_m=kwargs_m,
+            func_h_x=return_x_x,
+            kwargs_h_x={},
+            func_h_y=return_zero_y, 
+            kwargs_h_y={},
+            t_0=t_0 + n*T,
+            t_n=t_0 + (n+1)*T #The ODE is solve at the current period
+            )
+        ##The spans and the initial value of the next period
+        x_span = txyI_span[1]
+        x_nT_plus_next = np.exp(-E_c*T) * x_span[-1]
+        y_span = txyI_span[2]
+        y_nT_plus_next = y_span[-1]
+        t_span = txyI_span[0]
+
+        ##Extend the vectors for the plot
+        x_plot.extend(x_span)
+        y_plot.extend(y_span)
+        t_plot.extend(t_span)
+        
+        ##Verify if the initial values of the current and the next period are close enough
+        if np.abs(x_nT_plus - x_nT_plus_next) < error and np.abs(y_nT_plus - y_nT_plus_next) < error:
+            x_p_0 = x_nT_plus_next
+            y_p_0 = y_nT_plus_next
+            break #Stop if the initial value of the periodic solution is found
+        else: #Continue the simulation if the initial value of the periodic solution is not found
+            x_nT_plus = x_nT_plus_next
+            y_nT_plus = y_nT_plus_next #The new initial values of the period
+            n+=1 #Next period
+    
+    #Plot
+    if plot_population:
+        plt.figure()
+        plt.plot(t_plot, x_plot, color = (0,0,0.9), linestyle='-', label=f'Pest polutaion x with {xyI} as initial value')
+        plt.plot(t_plot, y_plot, color = (0.9,0,0), linestyle='-', label=f'Predator polutaion y with {xyI} as initial value')
+        plt.xlabel('time')
+        plt.ylabel('Population size')
+        plt.title(f'Population of pests and predators with exogenous mortality on pests \n with {xyI} as initial value, E = {E_c}, {T = }')
+        plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
+        plt.grid()
+        plt.show()
+
+    #Return
+    if x_p_0 == None or y_p_0 == None:
+        print(f'Periodic solution not found: {x_p_0 = }, {y_p_0 = }. \n increase t_n or the error')
+    else:
+        return x_p_0, y_p_0
 
 def store_x_p_0_prop_mortality_on_x(
     xyI,
