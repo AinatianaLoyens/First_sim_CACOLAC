@@ -1865,7 +1865,7 @@ def find_x_y_p_0_with_error_prop_mortality_on_x(
         t_plot.extend(t_span)
         
         ##Verify if the initial values of the current and the next period are close enough, and the same for (x(nT), y(nT)) and (x((n+1)T), y((n+1)T))
-        if (np.abs(x_nT_plus - x_nT_plus_next) < error and np.abs(y_nT_plus - y_nT_plus_next) < error):
+        if (np.abs(x_nT_plus - x_nT_plus_next) < error):
             x_p_0 = x_nT_plus_next
             y_p_0 = y_nT_plus_next
             break #Stop if the initial value of the periodic solution is found
@@ -2025,7 +2025,7 @@ def find_x_y_p_T_with_error_prop_mortality_on_x(
         t_plot.extend(t_span)
         
         ##Verify if (x(nT), y(nT)) and (x((n+1)T), y((n+1)T)) are close enough
-        if np.abs(x_nT - x_nT_next) < error and np.abs(y_nT - y_nT_next) < error:
+        if np.abs(x_nT - x_nT_next) < error:
             x_p_T = x_nT_next
             y_p_T = y_nT_next
             break #Stop if (x_p(T), y_p(T)) is found
@@ -2147,8 +2147,8 @@ def find_x_y_p_with_error_prop_mortality_on_x(
     t_plot.extend(t_span)
 
     ##Next initial value
-    x_nT_plus = np.exp(-E_c*T) * x_span[-1]
-    y_nT_plus = y_span[-1]
+    x_nT_plus = np.exp(-E_c*T) * x_nT
+    y_nT_plus = y_nT
     ##Next period
     n+=1
 
@@ -2176,12 +2176,14 @@ def find_x_y_p_with_error_prop_mortality_on_x(
             )
         ##The spans, the initial value of the next period, and the next (x(nT), y(nT))
         x_span = txyI_span[1]
-        x_nT_plus_next = np.exp(-E_c*T) * x_span[-1]
         x_nT_next = x_span[-1]
+        x_nT_plus_next = np.exp(-E_c*T) * x_nT_next
+        
 
         y_span = txyI_span[2]
-        y_nT_plus_next = y_span[-1]
         y_nT_next = y_span[-1]
+        y_nT_plus_next = y_nT_next
+        
 
         t_span = txyI_span[0]
 
@@ -2191,8 +2193,8 @@ def find_x_y_p_with_error_prop_mortality_on_x(
         t_plot.extend(t_span)
         
         ##Verify if (x(nT), y(nT)) and (x((n+1)T), y((n+1)T)) are close enough
-        if (np.abs(x_nT - x_nT_next) < error and np.abs(y_nT - y_nT_next) < error and
-            np.abs(x_nT_plus - x_nT_plus_next) < error and np.abs(y_nT_plus - y_nT_plus_next) < error):
+        if (np.abs(x_nT - x_nT_next) < error and
+            np.abs(x_nT_plus - x_nT_plus_next) < error):
             x_p_T = x_nT_next
             y_p_T = y_nT_next
             x_p_0 = x_nT_plus_next
@@ -2202,7 +2204,7 @@ def find_x_y_p_with_error_prop_mortality_on_x(
             x_nT = x_nT_next
             y_nT = y_nT_next #The new (x(nT), y(nT))
             x_nT_plus = x_nT_plus_next
-            y_nT_plus = y_nT_plus_next #The new initial values of the period
+            y_nT_plus = y_nT_plus_next #The new initial values of the next period
             n+=1 #Next period
     
     #Plot
