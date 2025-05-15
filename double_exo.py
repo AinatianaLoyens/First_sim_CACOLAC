@@ -2365,6 +2365,88 @@ def store_x_p_0_prop_mortality_on_x_with_error(
         x_p_0_array[i] = x_y_p_0[0] 
         y_p_0_array[i] = x_y_p_0[1] #Store the initial values found for E in the arrays
 
-        xyI0_E = [x_y_p_0[0], x_y_p_0[1], 0] #Change the initial value for the next E
+        xyI0_E = [x_y_p_0[0], x_y_p_0[1], 0] #Change the initial value for the next E to the current initial value
     
     return E_c_array, x_p_0_array, y_p_0_array
+
+def store_x_y_p_prop_mortality_on_x_with_error(
+    xyI,
+    t,
+    gamma:float,
+    T:float,
+    func_g: Callable[..., float],
+    kwargs_g: dict[str, float],
+    func_f: Callable[..., float],
+    kwargs_f: dict[str, float],
+    func_m: Callable[..., float],
+    kwargs_m: dict[str, float], 
+    t_0: float,
+    t_n: float,
+    E_c_start: float,
+    E_c_stop: float,
+    E_c_num: int= 100,
+    error: float = 1e-3
+):
+    '''This function store (x_p_0,y_p_0) and (x_p(T),y_p(T)) of the simulated periodic solution with respect to a range of E_c.
+    
+    Param:
+        xyI: initial value for the first value of E
+        t: time points (it is not used in the function but we need to put it to make the function usable to the solver, so we can put whatever we want)
+        gamma: conversion factor
+        T: period
+        func_g: the growth rate function
+        kwargs_g: a dictionnary of the arguments of func_g
+        func_f: the response function
+        kwargs_f: a dictionnary of the arguments of func_f
+        func_m: mortality rate function
+        kwargs_m: a dictionnary of the arguments of func_m
+        t_0: left endpoint of the domain
+        t_n: right endpoint of the domain
+        E_c_start: beginning of the E_c array
+        E_c_stop: end of the E_c array
+        E_c_num: number of point in the E_c array
+        error: the difference tolerated between the initial value of a period and the initial value of the next one
+        
+    Return: 
+        E_c_array : an array of the different values of E_c
+        x_p_0_array: an array with all the estimated x_p_0 with respect to E_c
+        y_p_0_array: an array with all the estimated y_p_0 with respect to E_c
+        x_p_T_array: an array with all the estimated x_p_T with respect to E_c
+        y_p_T_array: an array with all the estimated y_p_T with respect to E_c'''
+    
+    #The array of E_c
+    E_c_array = np.linspace(E_c_start, E_c_stop, E_c_num) 
+    #The arrays of the initial value of the periodic solution
+    x_p_0_array = np.zeros_like(E_c_array)
+    y_p_0_array = np.zeros_like(E_c_array)
+    x_p_T_array = np.zeros_like(E_c_array)
+    y_p_T_array = np.zeros_like(E_c_array)
+
+    #Fill the arrays of the initial value of the periodic solution
+    xyI0_E = xyI #initial value for the first value of E. This variable will change depending of the next E
+    for i in range(len(E_c_array)):
+        x_y_p = find_x_y_p_with_error_prop_mortality_on_x(
+            xyI = xyI0_E,
+            t=t,
+            gamma=gamma,
+            E_c=E_c_array[i],
+            T=T,
+            func_g=func_g,
+            kwargs_g=kwargs_g,
+            func_f=func_f,
+            kwargs_f=kwargs_f,
+            func_m=func_m,
+            kwargs_m=kwargs_m, 
+            t_0=t_0,
+            t_n=t_n,
+            error=error,
+            plot_population = False
+        )
+        x_p_0_array[i] = x_y_p[0] 
+        y_p_0_array[i] = x_y_p[1]
+        x_p_T_array[i] = x_y_p[2] 
+        y_p_T_array[i] = x_y_p[3] #Store the initial values found for E in the arrays
+
+        xyI0_E = [x_y_p[0], x_y_p[1], 0] #Change the initial value for the next E to the current initial value
+    
+    return E_c_array, x_p_0_array, y_p_0_array, x_p_T_array, y_p_T_array
