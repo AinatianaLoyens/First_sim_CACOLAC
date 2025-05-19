@@ -1105,7 +1105,9 @@ def compare_cont_imp_proportional_mortality_on_x(
     t_n: float,
     t_pulse:float,
     eps: float = 0.01,
-    plot_population: bool = False
+    plot_population: bool = False,
+    plot_bound: bool = False,
+    t_bound = 0
 ):
     
     '''This function returns the values of the criteria to compare between impulsive and continuous model.
@@ -1137,6 +1139,8 @@ def compare_cont_imp_proportional_mortality_on_x(
         t_pulse: time of first impulsion
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
+        store_bound: a bool to say if we return the time points where it takes at least one period more or less to reach eps
+        t_bound the time points where it takes at least one period more or less to reach eps
         
     Return:
         A dictionnary with the following values:
@@ -1217,6 +1221,9 @@ def compare_cont_imp_proportional_mortality_on_x(
         plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
         plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
         plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        if plot_bound:
+            for bound in t_bound:
+                plt.axvline(x=bound, color = 'gray', linestyle='dotted')
         plt.xlabel('time')
         plt.ylabel('Population size')
         plt.title(f'Population of pests and predators with exogenous mortality on pests \n and the first impulsive exogenous mortality at t = {t_pulse} \n {kwargs_g}, {E_c = }, {T = }')
@@ -1441,6 +1448,7 @@ def plot_diff_t_eta_of_t_pulse_large_prop_mortality_on_x(
     t_pulse_stop: float,
     t_pulse_num: int = 100,
     eps: float = 0.01,
+    store_bound: bool = False
 ):
     '''This function plots t_eta_imp - t_eta_cont with respect to a range of t_pulse whose start and end are chosen by the user.
     t_eta_imp is the time for the impulsive model to reach the threshold epsilon.
@@ -1465,7 +1473,12 @@ def plot_diff_t_eta_of_t_pulse_large_prop_mortality_on_x(
         t_pulse_start: beginning of the t_pulse array
         t_pulse_stop: end of the t_pulse array
         t_pulse_num: number of point in the t_pulse array
-        eps: the threshold below which we want to have the population of pests'''
+        eps: the threshold below which we want to have the population of pests
+        store_bound: a bool to say if we return the time points where it takes at least one period more or less to reach eps
+        
+    Return if plot_bound:
+        t_bound the time points where it takes at least one period more or less to reach eps'''
+    
     
     #The array of t_pulse
     t_pulse_array = np.linspace(t_pulse_start, t_pulse_stop, t_pulse_num)
@@ -1495,7 +1508,9 @@ def plot_diff_t_eta_of_t_pulse_large_prop_mortality_on_x(
             diff_t_eta_array[i] = criteria['t_eta_imp - t_eta_cont']
         else:
             return "epsilon is not reached for at least one t_pulse"
-        
+    
+    print(diff_t_eta_array)
+
     #Plot the graph got
     plt.figure()
     plt.plot(t_pulse_array, diff_t_eta_array, color = (0.3,0.4,1), linestyle = '-', label= 'Difference of time to reach the threshold')
@@ -1505,6 +1520,17 @@ def plot_diff_t_eta_of_t_pulse_large_prop_mortality_on_x(
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
     plt.grid()
     plt.show()
+
+    #A special part for the "bounds"
+    if store_bound:
+        t_bound = [] #The time points where it takes at least one period more or less to reach eps
+        for i in range(1, len(diff_t_eta_array)):
+            if np.abs(diff_t_eta_array[i] - diff_t_eta_array[i-1]) >= 0.9*T:
+                t_bound.append(t_pulse_array[i])
+        return t_bound
+    
+
+
 
 def plot_t_eta_contour_from_t_pulse_over_T_and_T_prop_mortality_on_x(
     xyI0_imp,
