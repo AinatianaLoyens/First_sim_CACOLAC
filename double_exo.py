@@ -1509,7 +1509,7 @@ def plot_diff_t_eta_of_t_pulse_large_prop_mortality_on_x(
         else:
             return "epsilon is not reached for at least one t_pulse"
     
-    print(diff_t_eta_array)
+    #print(diff_t_eta_array)
 
     #Plot the graph got
     plt.figure()
