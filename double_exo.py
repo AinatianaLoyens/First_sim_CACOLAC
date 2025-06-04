@@ -1426,7 +1426,7 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
     plt.figure()
     plt.plot(t_pulse_array, diff_t_eta_array, color = (0.3,0.4,1), linestyle = '-', label= 'Difference of time to reach the threshold')
     plt.xlabel('t_pulse')
-    plt.ylabel('t_eta_imp - t_eta_cont')
+    plt.ylabel('t_imp - t_cont')
     plt.suptitle(f'{T=}, {eps=}, initial value for impulsive model: {xyI0_imp}, initial value for continuous model: {xyI0_cont}')
     plt.title(f'Difference of time to reach epsilon with respect to t_pulse')
     plt.legend(loc= 'upper left', bbox_to_anchor=(1,1))
