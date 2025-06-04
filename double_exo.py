@@ -1108,7 +1108,8 @@ def compare_cont_imp_proportional_mortality_on_x(
     plot_population: bool = False,
     plot_bound: bool = False,
     t_bound = 0,
-    plot_eps: bool = False
+    plot_eps: bool = False,
+    pop_in_log: bool = False
 ):
     
     '''This function returns the values of the criteria to compare between impulsive and continuous model.
@@ -1222,6 +1223,8 @@ def compare_cont_imp_proportional_mortality_on_x(
         plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
         plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
         plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        if pop_in_log:
+            plt.yscale('log')
         if plot_bound:
             for bound in t_bound:
                 plt.axvline(x=bound, color = 'gray', linestyle='dotted')
