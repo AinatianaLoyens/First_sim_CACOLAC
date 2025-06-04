@@ -1107,7 +1107,8 @@ def compare_cont_imp_proportional_mortality_on_x(
     eps: float = 0.01,
     plot_population: bool = False,
     plot_bound: bool = False,
-    t_bound = 0
+    t_bound = 0,
+    plot_eps: bool = False
 ):
     
     '''This function returns the values of the criteria to compare between impulsive and continuous model.
@@ -1224,6 +1225,9 @@ def compare_cont_imp_proportional_mortality_on_x(
         if plot_bound:
             for bound in t_bound:
                 plt.axvline(x=bound, color = 'gray', linestyle='dotted')
+        if plot_eps:
+            plt.plot(t, eps*np.ones_like(t), color = 'orange', linestyle=':')
+        plt.text(t[-1]*0.95, eps * 1.02, r'$\varepsilon$', color='orange', fontsize=14)
         plt.xlabel('time')
         plt.ylabel('Population size')
         plt.title(f'Population of pests and predators with exogenous mortality on pests \n and the first impulsive exogenous mortality at t = {t_pulse} \n {kwargs_g}, {E_c = }, {T = }')
