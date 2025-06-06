@@ -1142,7 +1142,9 @@ def compare_cont_imp_proportional_mortality_on_x(
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
         store_bound: a bool to say if we return the time points where it takes at least one period more or less to reach eps
-        t_bound the time points where it takes at least one period more or less to reach eps
+        t_bound: the time points where it takes at least one period more or less to reach eps
+        plot_eps: a bool to say if we plot the control level epsilon
+        pop_in_pol: a bool to say if we rescale the y-axis (the population dynamics) in log 
         
     Return:
         A dictionnary with the following values:
