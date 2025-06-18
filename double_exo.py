@@ -11,9 +11,9 @@ import matplotlib.pyplot as plt
 from typing import Callable
 from matplotlib.colors import TwoSlopeNorm
 
-#Pre-implemented functions that can be used in the models (like in exo.py)
+#1 Pre-implemented functions that can be used in the models (like in exo.py)
 
-##Functions with both x and y as two first arguments
+##1.1 Functions with both x and y as two first arguments
 def identity(x, y, z: float):
     '''This function returns the argument z itself
     x: pest population that is not used by the function but will be needed for the general model
@@ -139,7 +139,7 @@ def squabbling_m(
     
     return m + q*y
 
-##Functions with x as first argument but not y
+##1.2 Functions with x as first argument but not y
 def identity_x(x, z: float):
     '''This function returns the argument z itself
     x: pest population that is not used by the function but will be needed for the general model
@@ -209,7 +209,7 @@ def logistic_sub_E_x(
 
     return r * (1 - x/K) - E_x
 
-##Functions with y as first argument but not x
+##1.3 Functions with y as first argument but not x
 def identity_y(y, z: float):
     '''This function returns the argument z itself
     y: predator population that is not used by the function but will be needed for the general model
@@ -240,7 +240,9 @@ def multiply_y__y(y, z:float):
     z: the factor by which y is multiplied'''
     return z * y
 
-#General model with a discrete part for both x and y 
+#2 Functions to solve the model. 
+
+##2.1 Generality
 
 def predator_prey_model(
     xyI,
@@ -293,8 +295,6 @@ def predator_prey_model(
     dI = x
     
     return dx, dy, dI
-
-#
 
 def solve_predator_prey_model(
     xyI,
@@ -401,6 +401,8 @@ def solve_predator_prey_model(
         t.extend(tspan)
 
     return t, x, y, I
+
+##2.2 Choice of the first time of pulse
 
 def solve_pp_model_mortality_at_t_0(
     xyI,
@@ -624,7 +626,9 @@ def solve_pp_choose_first_impulsion(
 
     return t, x, y, I
 
-#Functions to help when plotting the comparison between continuous and impulsive models
+#3 Functions for the comparison between the continuous model and the impulsive model
+
+##3.1 Function to help when plotting the comparison between continuous and impulsive models
 def modify_func_Ec(func_g):
     '''This function creates a new function.
     The new function is the same as in parameter...
@@ -645,7 +649,7 @@ def modify_func_Ec(func_g):
         return result - E_c
     return new_func_g
 
-#Functions to plot results and to compare the criteria
+##3.2 Functions to plot the dynamics of the two models and to compare the criteria
 
 def plot_pop_mortality_on_x_logistic_LV(
     xyI,
@@ -1267,9 +1271,11 @@ def compare_cont_imp_proportional_mortality_on_x(
         return {'T': T, 'I_cont_final':I_cont_final, 'I_imp_final':I_imp_final,
                 'eps': eps, 't_pulse': t_pulse, 't_eta_cont': t_eta_cont, 't_eta_imp':t_eta_imp, 't_eta_imp - t_eta_cont':t_eta_imp - t_eta_cont}
     
-#Functions to plot graphs of the criteria
-##Those functions simulate the criteria for many values of parameters using for loops
-##All of those functions compare two models : impulsive and continuous with proportional harvesting
+##3.3 Functions to plot graphs of the criteria
+    
+###Those functions simulate the criteria for many values of parameters using for loops
+###All of those functions compare two models : impulsive and continuous with proportional harvesting
+    
 def plot_t_eta_of_eps_prop_mortality_on_x(
     xyI0_imp,
     xyI0_cont,
@@ -1783,7 +1789,7 @@ def plot_t_eta_contour_from_t_pulse_and_T_prop_mortality_on_x(
     plt.show()
     
 
-#To retrieve the values of the periodic solution.
+#4 Functions to retrieve the values of the periodic solution.
     
 def give_init_value_last_period_prop_mortality_on_x(
     xyI,
