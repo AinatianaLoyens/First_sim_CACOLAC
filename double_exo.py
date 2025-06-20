@@ -784,7 +784,8 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     t_0: float,
     t_n: float,
     eps: float = 0.01,
-    plot_population: bool = False
+    plot_population: bool = False,
+    plot_y: bool = True
 ):
     
     '''This function returns the values of the criteria to compare between impulsive and continuous model.
@@ -815,6 +816,7 @@ def compare_cont_imp_proportional_mortality_on_x_T(
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
+        plot_y: to precise if we want to plot the population y. This parameter is used only when plot_population == True
         
     Return:
         A dictionnary with the following values:
@@ -890,9 +892,10 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     if plot_population:
         plt.figure()
         plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
         plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        if plot_y:
+            plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+            plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
         plt.xlabel('time')
         plt.ylabel('Population size')
         plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = T')
@@ -945,7 +948,8 @@ def compare_cont_imp_proportional_mortality_on_x_0(
     t_0: float,
     t_n: float,
     eps: float = 0.01,
-    plot_population: bool = False
+    plot_population: bool = False,
+    plot_y: bool = True
 ):
     
     '''This function returns the values of the criteria to compare between impulsive and continuous model.
@@ -976,6 +980,7 @@ def compare_cont_imp_proportional_mortality_on_x_0(
         t_n: right endpoint of the domain
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
+        plot_y: to precise if we want to plot the population y. This parameter is used only when plot_population == True
         
     Return:
         A dictionnary with the following values:
@@ -1051,9 +1056,10 @@ def compare_cont_imp_proportional_mortality_on_x_0(
     if plot_population:
         plt.figure()
         plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
         plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        if plot_y:
+            plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+            plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
         plt.xlabel('time')
         plt.ylabel('Population size')
         plt.title(f'Population of pests and predators with continuous and impulsive exogenous mortality on pests and the first impulsive exogenous mortality at t = 0')
@@ -1110,6 +1116,7 @@ def compare_cont_imp_proportional_mortality_on_x(
     t_pulse:float,
     eps: float = 0.01,
     plot_population: bool = False,
+    plot_y: bool = True,
     plot_bound: bool = False,
     t_bound = 0,
     plot_eps: bool = False,
@@ -1145,6 +1152,7 @@ def compare_cont_imp_proportional_mortality_on_x(
         t_pulse: time of first impulsion
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
+        plot_y: to precise if we want to plot the population y. This parameter is used only when plot_population == True
         store_bound: a bool to say if we return the time points where it takes at least one period more or less to reach eps
         t_bound: the time points where it takes at least one period more or less to reach eps
         plot_eps: a bool to say if we plot the control level epsilon
@@ -1226,9 +1234,10 @@ def compare_cont_imp_proportional_mortality_on_x(
     if plot_population:
         plt.figure()
         plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-        plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
         plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
-        plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
+        if plot_y:
+            plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
+            plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
         if pop_in_log:
             plt.yscale('log')
         if plot_bound:
@@ -1805,7 +1814,8 @@ def give_init_value_last_period_prop_mortality_on_x(
     kwargs_m: dict[str, float], 
     t_0: float,
     t_n: float,
-    plot_population: bool = False
+    plot_population: bool = False,
+    plot_y: bool = True
 ): 
     '''This function retrieves the initial value of the last period for a proportional mortality on x.
     
@@ -1890,7 +1900,8 @@ def give_init_value_last_period_prop_mortality_on_x(
         t_n=t_n,
         t_pulse=T,
         eps=0.01,
-        plot_population=True
+        plot_population=True,
+        plot_y=plot_y
     )
 
     return x_nT_plus_last
