@@ -19,9 +19,11 @@ This module provides tools to simulate and analyze a population dynamics model w
 The model implemented in this module is based on the following system:
 
 dx/dt = g(x) * x - f(x, y) * y
+
 dy/dt = γ * f(x, y) * y - m(x, y) * y
 
 x(nT⁺) = x(nT) - Ẽₓ * hₓ(x(nT))
+
 y(nT⁺) = y(nT) - Ẽᵧ * hᵧ(y(nT))
 
 
