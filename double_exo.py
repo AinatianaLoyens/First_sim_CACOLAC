@@ -1116,6 +1116,7 @@ def compare_cont_imp_proportional_mortality_on_x(
     t_pulse:float,
     eps: float = 0.01,
     plot_population: bool = False,
+    plot_x:bool = True,
     plot_y: bool = True,
     plot_bound: bool = False,
     t_bound = 0,
@@ -1152,6 +1153,7 @@ def compare_cont_imp_proportional_mortality_on_x(
         t_pulse: time of first impulsion
         eps: the threshold below which we want to have the population of pests
         plot_population: to precise if we want to plot the population size
+        plot_x: to precise if we want to plot the population x. This parameter is used only when plot_population == True
         plot_y: to precise if we want to plot the population y. This parameter is used only when plot_population == True
         store_bound: a bool to say if we return the time points where it takes at least one period more or less to reach eps
         t_bound: the time points where it takes at least one period more or less to reach eps
@@ -1233,8 +1235,9 @@ def compare_cont_imp_proportional_mortality_on_x(
     ##Evolution of the populations
     if plot_population:
         plt.figure()
-        plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-        plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+        if plot_x:
+            plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+            plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
         if plot_y:
             plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
             plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
