@@ -785,6 +785,7 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     t_n: float,
     eps: float = 0.01,
     plot_population: bool = False,
+    plot_x: bool = True,
     plot_y: bool = True
 ):
     
@@ -891,8 +892,9 @@ def compare_cont_imp_proportional_mortality_on_x_T(
     ##Evolution of the populations
     if plot_population:
         plt.figure()
-        plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
-        plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
+        if plot_x:
+            plt.plot(t, x_cont, color = (0,0,0.9), linestyle='-', label=f'x_cont with {xyI0_cont} as initial value')
+            plt.plot(t, x_imp, color = (0,0,0.9), linestyle='--', label=f'x_imp with {xyI0_imp} as initial value')
         if plot_y:
             plt.plot(t, y_cont, color = (0.9,0,0), linestyle='-', label=f'y_cont with {xyI0_cont} as initial value')
             plt.plot(t, y_imp, color = (0.9,0,0), linestyle='--', label=f'y_imp with {xyI0_imp} as initial value')
@@ -1818,6 +1820,7 @@ def give_init_value_last_period_prop_mortality_on_x(
     t_0: float,
     t_n: float,
     plot_population: bool = False,
+    plot_x: bool = True,
     plot_y: bool = True
 ): 
     '''This function retrieves the initial value of the last period for a proportional mortality on x.
@@ -1904,6 +1907,7 @@ def give_init_value_last_period_prop_mortality_on_x(
         t_pulse=T,
         eps=0.01,
         plot_population=True,
+        plot_x=plot_x,
         plot_y=plot_y
     )
 
