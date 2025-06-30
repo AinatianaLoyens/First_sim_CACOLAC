@@ -1455,7 +1455,7 @@ def plot_diff_t_eta_of_t_pulse_prop_mortality_on_x(
     plt.axhspan(min(diff_t_eta_array), 0, facecolor='lightblue', alpha=0.3)
     
     # y=0 line
-    plt.axhline(0, color='red', linestyle='--', linewidth=1, label='y = 0')
+    plt.axhline(0, color='red', linestyle='-', linewidth=1)
 
     # Main plot
     plt.plot(t_pulse_array, diff_t_eta_array, color = (0.3,0.4,1), linestyle = '-', label= 'Difference of time to reach the threshold')
